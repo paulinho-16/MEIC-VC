@@ -1,6 +1,6 @@
 from .data import Data
 
-from .color import Color
-from .shape import Shape
+from .color import ColorDetector
+from .shape import ShapeDetector
 
 __all__ = ["Data", "Color", "Shape"]

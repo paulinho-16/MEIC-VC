@@ -1,6 +1,6 @@
 import cv2
 
-class Color:
+class ColorDetector:
     def __init__(self, image) -> None:
         self.image = image
         pass
@@ -45,4 +45,4 @@ class Color:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        return "gray"
+        return ("gray", red, blue, result)
