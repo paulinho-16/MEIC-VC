@@ -17,7 +17,12 @@ if __name__ == "__main__":
     shape_detector = ShapeDetector(red_result, blue_result, color_result)
     image_shape = shape_detector.find_shape()
 
+    print(image_data.image.shape)
+    print(image_shape.shape)
+
+    final_result = cv2.bitwise_or(image_data.image, image_shape)
+
     # Show the output image
-    cv2.imshow('Final Result', image_data.image)
+    cv2.imshow('Final Result', final_result)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
