@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 class ColorDetector:
     def __init__(self, image) -> None:
@@ -15,22 +16,28 @@ class ColorDetector:
         # Merge the mask and crop the red regions
         red_mask = cv2.bitwise_or(red_mask1, red_mask2)
 
-        red = cv2.bitwise_and(hsv, hsv, mask=red_mask)
-        red = cv2.cvtColor(red, cv2.COLOR_HSV2BGR)
+        red_show = cv2.bitwise_and(hsv, hsv, mask=red_mask)
+        red_show = cv2.cvtColor(red_show, cv2.COLOR_HSV2BGR)
 
-        cv2.imshow('Red', red)
+        cv2.imshow('Red', red_show)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
         # Generate mask (90-130) of blue
         blue_mask = cv2.inRange(hsv, (90,30,50), (130,255,255))
 
-        blue = cv2.bitwise_and(hsv, hsv, mask=blue_mask)
-        blue = cv2.cvtColor(blue, cv2.COLOR_HSV2BGR)
+        blue_show = cv2.bitwise_and(hsv, hsv, mask=blue_mask)
+        blue_show = cv2.cvtColor(blue_show, cv2.COLOR_HSV2BGR)
 
-        cv2.imshow('Blue', blue)
+        cv2.imshow('Blue', blue_show)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+        red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
+        red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_DILATE, np.ones((3,3),np.uint8))
+
+        blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
+        blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_DILATE, np.ones((3,3),np.uint8))
 
         red = cv2.bitwise_and(self.image, self.image, mask=red_mask)
         blue = cv2.bitwise_and(self.image, self.image, mask=blue_mask)

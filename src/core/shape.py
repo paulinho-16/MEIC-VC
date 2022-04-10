@@ -1,5 +1,6 @@
 import imutils
 import cv2
+import numpy as np
 
 class ShapeDetector:
     def __init__(self, red, blue, image) -> None:
@@ -42,8 +43,14 @@ class ShapeDetector:
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         # blurred = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY)[1]
 
+        #cv2.imshow('no imgLCwithCLAHE', gray)
+
         # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         # imgLCwithCLAHE = clahe.apply(gray)
+
+        #cv2.imshow('imgLCwithCLAHE', imgLCwithCLAHE)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
 
         # imgLCwithCLAHE = cv2.cvtColor(imgLCwithCLAHE, cv2.COLOR_GRAY2BGR)
 
@@ -52,6 +59,26 @@ class ShapeDetector:
         # cv2.imshow('Antes', self.image)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
+
+        # num_labels, labels_im = cv2.connectedComponents(gray)
+
+        # def imshow_components(labels):
+        #     # Map component labels to hue val
+        #     label_hue = np.uint8(179*labels/np.max(labels))
+        #     blank_ch = 255*np.ones_like(label_hue)
+        #     labeled_img = cv2.merge([label_hue, blank_ch, blank_ch])
+
+        #     # cvt to BGR for display
+        #     labeled_img = cv2.cvtColor(labeled_img, cv2.COLOR_HSV2BGR)
+
+        #     # set bg label to black
+        #     labeled_img[label_hue==0] = 0
+
+        #     cv2.imshow('labeled.png', labeled_img)
+        #     cv2.waitKey()
+        #     cv2.destroyAllWindows()
+
+        # imshow_components(labels_im)
 
         # find contours in the thresholded image and initialize the shape detector
         cnts = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -81,3 +108,36 @@ class ShapeDetector:
         cv2.destroyAllWindows()
 
         return "circle"
+
+    def connected_component_label(self, path):
+        # Getting the input image
+        img = cv2.imread(path, 0)
+        # Converting those pixels with values 1-127 to 0 and others to 1
+        img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]
+        # Applying cv2.connectedComponents() 
+        num_labels, labels = cv2.connectedComponents(img)
+        
+        # Map component labels to hue val, 0-179 is the hue range in OpenCV
+        label_hue = np.uint8(179*labels/np.max(labels))
+        blank_ch = 255*np.ones_like(label_hue)
+        labeled_img = cv2.merge([label_hue, blank_ch, blank_ch])
+
+        # Converting cvt to BGR
+        labeled_img = cv2.cvtColor(labeled_img, cv2.COLOR_HSV2BGR)
+
+        # set bg label to black
+        labeled_img[label_hue==0] = 0
+        
+        
+        # Showing Original Image
+        plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        plt.axis("off")
+        plt.title("Orginal Image")
+        plt.show()
+        
+        #Showing Image after Component Labeling
+        plt.imshow(cv2.cvtColor(labeled_img, cv2.COLOR_BGR2RGB))
+        plt.axis('off')
+        plt.title("Image after Component Labeling")
+        plt.show()
+
