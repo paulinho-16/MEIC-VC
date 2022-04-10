@@ -9,6 +9,16 @@ class ColorDetector:
     def find_color(self):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
 
+        # split HSV
+        h,s,v = cv2.split(hsv)
+
+        # Increasing Contrast with CLAHE in saturation and value
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        swithCLAHE = clahe.apply(s)
+        vwithCLAHE = clahe.apply(v)
+
+        hsv = cv2.merge([h, swithCLAHE, vwithCLAHE])
+
         # Generate lower mask (0-10) and upper mask (170-180) of red
         red_mask1 = cv2.inRange(hsv, (0,50,20), (10,255,255))
         red_mask2 = cv2.inRange(hsv, (170,50,20), (180,255,255))
