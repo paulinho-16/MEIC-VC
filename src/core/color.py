@@ -29,6 +29,8 @@ class ColorDetector:
         red_show = cv2.bitwise_and(hsv, hsv, mask=red_mask)
         red_show = cv2.cvtColor(red_show, cv2.COLOR_HSV2BGR)
 
+        # red_show = cv2.fastNlMeansDenoisingColored(red_show,None,10,10,7,21)
+
         # Show red tracing
         # cv2.imshow('Red', red_show)
         # cv2.waitKey(0)
