@@ -26,8 +26,8 @@ class ShapeDetector:
                 shape = "square"
 
         # if the shape is a pentagon, it will have 5 vertices
-        elif len(approx) == 5:
-            shape = "pentagon"
+        # elif len(approx) == 5:
+        #     shape = "pentagon"
         elif len(approx) == 8:
             shape = "stop"
         # otherwise, we assume the shape is a circle
@@ -95,8 +95,6 @@ class ShapeDetector:
             c = c.astype("float")
             # c *= ratio
             c = c.astype("int")
-
-            (x,y), contour_radius = cv2.minEnclosingCircle(c)
             
             # if not contains_circle:
             if not (shape == "stop" and colour == "blue"): # TODO: If the building is red still detects a stop sign - road78.png
