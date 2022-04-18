@@ -103,7 +103,7 @@ if __name__ == "__main__":
             classification = f"{colour} {t}" if t != "stop" else "stop sign"
             cv2.putText(image_data.image, classification, (cX - 35, cY - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-    if stop_count == 0:        
+    if stop_count == 0:
         # OpenCV opens images as BRG 
         # but we want it as RGB We'll 
         # also need a grayscale version

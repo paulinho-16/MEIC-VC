@@ -7,15 +7,13 @@ class ColorDetector:
         pass
 
     def find_color(self):
-        hslimage  = cv2.cvtColor(self.image, cv2.COLOR_BGR2HLS)
-        Lchannel = hslimage[:,:,1]
-        lvalue =cv2.mean(Lchannel)[0]
-        print(f' VALORRRR: {lvalue}')
-
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
 
         # split HSV
         h,s,v = cv2.split(hsv)
+
+        saturation = hsv[:, :, 1].mean()
+        print(f' SATTT MEDIA: {saturation}')
 
         # Increasing Contrast with CLAHE in saturation and value
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -25,10 +23,14 @@ class ColorDetector:
         hsv = cv2.merge([h, swithCLAHE, vwithCLAHE])
 
         # Generate lower mask (0-10) and upper mask (170-180) of red
-        red_mask1 = cv2.inRange(hsv, (0,100,50), (20,255,255)) # funcionam no road54.png
-        red_mask2 = cv2.inRange(hsv, (160,100,50), (180,255,255)) # funcionam no road54.png
-        red_mask1 = cv2.inRange(hsv, (0,90,50), (10,255,255)) # deteta tudo no road56.png
-        red_mask2 = cv2.inRange(hsv, (170,90,50), (180,255,255)) # deteta tudo no road56.png
+        if saturation < 61:
+            red_mask1 = cv2.inRange(hsv, (0,90,50), (10,255,255)) # deteta tudo no road56.png
+            red_mask2 = cv2.inRange(hsv, (170,90,50), (180,255,255)) # deteta tudo no road56.png
+        else:
+            red_mask1 = cv2.inRange(hsv, (0,65,30), (20,255,255)) # deteta tudo no road57.png
+            red_mask2 = cv2.inRange(hsv, (160,65,30), (180,255,255)) # deteta tudo no road57.png
+            red_mask1 = cv2.inRange(hsv, (0,30,30), (20,255,255)) # deteta tudo no road66.png
+            red_mask2 = cv2.inRange(hsv, (160,30,30), (180,255,255)) # deteta tudo no road66.png
 
         # Merge the mask and crop the red regions
         red_mask = cv2.bitwise_or(red_mask1, red_mask2)
@@ -61,11 +63,15 @@ class ColorDetector:
         print(f' VALORRRR DO BLUE: {blue_lvalue}')
 
         red_hsv = cv2.cvtColor(red, cv2.COLOR_BGR2HSV)
+        average_hsv_1 = cv2.mean(red_hsv, red_mask1)[:3]
+        average_hsv_2 = cv2.mean(red_hsv, red_mask2)[:3]
+        print(f' AVERAGGEEEEEE 11111111: {average_hsv_1}')
+        print(f' AVERAGGEEEEEE 22222222: {average_hsv_2}')
         average_hsv = cv2.mean(red_hsv,  red_mask)[:3]
         print(f' AVERAGGEEEEEE: {average_hsv}')
         min_value_saturation = red_hsv[np.where(red_hsv[:,:,1]>0)][:,1].min()
         print(f' MINIMUMMM: {min_value_saturation}')
-        red_threshold = (average_hsv[1] + min_value_saturation) / 50
+        red_threshold = (average_hsv[1] + min_value_saturation) / 2
         print(f' THRESHOLD A PARTIR DE: {red_threshold}')
 
         # Show red tracing
@@ -74,8 +80,11 @@ class ColorDetector:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        red_mask1 = cv2.inRange(hsv, (0, red_threshold, 50), (10, 255, 255))
-        red_mask2 = cv2.inRange(hsv, (170, red_threshold, 50), (180, 255, 255))
+        max_red1 = 10 if average_hsv_1[0] <= 15 else 20
+        min_red2 = 170 if average_hsv_1[0] > 175 else 160
+
+        red_mask1 = cv2.inRange(hsv, (0, red_threshold, 50), (max_red1, 255, 255))
+        red_mask2 = cv2.inRange(hsv, (min_red2, red_threshold, 50), (180, 255, 255))
         
         # Merge the mask and crop the red regions
         red_mask = cv2.bitwise_or(red_mask1, red_mask2)

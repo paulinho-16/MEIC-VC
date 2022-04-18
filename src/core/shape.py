@@ -61,8 +61,8 @@ class ShapeDetector:
         cnts = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
 
-        # Draw circles
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT_ALT, 2, 30, param1=250, param2=0.8, minRadius=1) # param1 estava a 100, mudamos por causa do road53.png
+        # Draw circles # TODO: verificar melhores valores possíveis
+        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT_ALT, 2, 30, param1=250, param2=0.5, minRadius=1) # param1 estava a 100, mudamos por causa do road53.png, mudamos param2 de 0.8 para 0.5
         if circles is None: circles = [[]] 
         circles = np.uint16(np.around(circles))
 
