@@ -36,13 +36,16 @@ class ColorDetector:
         red_mask = cv2.bitwise_or(red_mask1, red_mask2)
 
         # Generate mask (90-130) of blue
-        blue_mask = cv2.inRange(hsv, (90,30,50), (130,255,255)) # valores originais
+        if saturation < 65:
+            blue_mask = cv2.inRange(hsv, (90,120,50), (130,255,255)) # valores originais
+        else:
+            blue_mask = cv2.inRange(hsv, (90,150,50), (130,255,255))
 
         red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
         # red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_DILATE, np.ones((3,3),np.uint8))
 
         blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
-        # blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_GRADIENT, np.ones((3,3),np.uint8))
+        # blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_DILATE, np.ones((5,5),np.uint8))
 
         red = cv2.bitwise_and(self.image, self.image, mask=red_mask)
         blue = cv2.bitwise_and(self.image, self.image, mask=blue_mask)
@@ -52,7 +55,7 @@ class ColorDetector:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        red_hslimage  = cv2.cvtColor(red, cv2.COLOR_BGR2HLS)
+        red_hslimage  = cv2.cvtColor(red, cv2.COLOR_BGR2HLS) # TODO: tirar isto
         red_Lchannel = red_hslimage[:,:,1]
         red_lvalue =cv2.mean(red_Lchannel)[0]
         print(f' VALORRRR DO RED: {red_lvalue}')
@@ -67,12 +70,23 @@ class ColorDetector:
         average_hsv_2 = cv2.mean(red_hsv, red_mask2)[:3]
         print(f' AVERAGGEEEEEE 11111111: {average_hsv_1}')
         print(f' AVERAGGEEEEEE 22222222: {average_hsv_2}')
-        average_hsv = cv2.mean(red_hsv,  red_mask)[:3]
-        print(f' AVERAGGEEEEEE: {average_hsv}')
-        min_value_saturation = red_hsv[np.where(red_hsv[:,:,1]>0)][:,1].min()
-        print(f' MINIMUMMM: {min_value_saturation}')
-        red_threshold = (average_hsv[1] + min_value_saturation) / 2
-        print(f' THRESHOLD A PARTIR DE: {red_threshold}')
+        average_hsv_red = cv2.mean(red_hsv,  red_mask)[:3]
+        print(f' AVERAGGEEEEEE: {average_hsv_red}')
+        print(red_hsv)
+
+        blue_hsv = cv2.cvtColor(blue, cv2.COLOR_BGR2HSV)
+        average_hsv_blue = cv2.mean(blue_hsv,  blue_mask)[:3]
+
+        min_value_saturation_red = red_hsv[np.where(red_hsv[:,:,1]>0)][:,1].min() if red_hsv.any() else 100
+        min_value_saturation_blue = blue_hsv[np.where(blue_hsv[:,:,1]>0)][:,1].min() if blue_hsv.any() else 100
+
+        print(f' MINIMUMMM RED: {min_value_saturation_red}')
+        red_threshold = (average_hsv_red[1] + min_value_saturation_red) / 2
+        print(f' THRESHOLD RED A PARTIR DE: {red_threshold}')
+
+        print(f' MINIMUMMM BLUE: {min_value_saturation_blue}')
+        blue_threshold = (average_hsv_blue[1] + min_value_saturation_blue) / 2
+        print(f' THRESHOLD BLUE A PARTIR DE: {blue_threshold}')
 
         # Show red tracing
         show_hsv = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
@@ -81,17 +95,22 @@ class ColorDetector:
         cv2.destroyAllWindows()
 
         max_red1 = 10 if average_hsv_1[0] <= 15 else 20
-        min_red2 = 170 if average_hsv_1[0] > 175 else 160
+        min_red2 = 170 if average_hsv_1[0] > 175 else 160 # TODO: devia ser average_hsv_2, mudar para verificar se não estraga
 
         red_mask1 = cv2.inRange(hsv, (0, red_threshold, 50), (max_red1, 255, 255))
         red_mask2 = cv2.inRange(hsv, (min_red2, red_threshold, 50), (180, 255, 255))
         
+        blue_mask = cv2.inRange(hsv, (90, blue_threshold, 50), (130, 255, 255))
+
         # Merge the mask and crop the red regions
         red_mask = cv2.bitwise_or(red_mask1, red_mask2)
 
         red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
 
+        blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
+
         red = cv2.bitwise_and(self.image, self.image, mask=red_mask)
+        blue = cv2.bitwise_and(self.image, self.image, mask=blue_mask)
 
         # Show red tracing
         cv2.imshow('Red Color', red)

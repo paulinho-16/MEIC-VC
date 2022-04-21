@@ -12,7 +12,9 @@ class ShapeDetector:
         # initialize the shape name and approximate the contour
         shape = "unidentified"
         peri = cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, 0.01 * peri, True)
+        approx = cv2.approxPolyDP(contour, 0.02 * peri, True) # Estava 0.01, verificar tudo de novo a ver se não estraga...
+
+        print(f'LENNNNNN LADOS: { len(approx) }')
         # if the shape is a triangle, it will have 3 vertices
         if len(approx) == 3:
             shape = "triangle"
@@ -22,8 +24,10 @@ class ShapeDetector:
             (x, y, w, h) = cv2.boundingRect(approx)
             ar = w / float(h)
             # a square will have an aspect ratio that is approximately equal to one, otherwise, the shape is a rectangle
-            if ar >= 0.95 and ar <= 1.05:
+            if ar >= 0.90 and ar <= 1.10:
                 shape = "square"
+            else:
+                shape = "rectangle"
 
         # if the shape is a pentagon, it will have 5 vertices
         # elif len(approx) == 5:
@@ -52,7 +56,7 @@ class ShapeDetector:
 
         # convert the resized image to grayscale, blur it slightly, and threshold it
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # TODO: era resized
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        blurred = cv2.GaussianBlur(gray, (7, 7), 0)
         # blurred = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY)[1]
 
         final_contours = []
@@ -62,8 +66,8 @@ class ShapeDetector:
         cnts = imutils.grab_contours(cnts)
 
         # Draw circles # TODO: verificar melhores valores possíveis
-        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT_ALT, 2, 30, param1=250, param2=0.5, minRadius=1) # param1 estava a 100, mudamos por causa do road53.png, mudamos param2 de 0.8 para 0.5
-        if circles is None: circles = [[]] 
+        circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT_ALT, 2, 30, param1=250, param2=0.75, minRadius=1) # param1 estava a 100, mudamos por causa do road53.png, mudamos param2 de 0.8 para 0.5
+        if circles is None: circles = [[]]
         circles = np.uint16(np.around(circles))
 
         processed_centers = {}
@@ -88,8 +92,8 @@ class ShapeDetector:
             cY = int((M["m01"] / (M["m00"] + 1e-7))) #* ratio)
             shape = self.detect(c)
 
-            if shape == "unidentified":
-                continue
+            # if shape == "unidentified":
+            #     continue
             
             # multiply the contour (x, y)-coordinates by the resize ratio, then draw the contours and the name of the shape on the image
             c = c.astype("float")
