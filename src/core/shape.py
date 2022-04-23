@@ -1,6 +1,9 @@
+from dis import dis
+from turtle import distance
 import imutils
 import cv2
 import numpy as np
+import math
 
 class ShapeDetector:
     def __init__(self, red, blue, image) -> None:
@@ -8,11 +11,12 @@ class ShapeDetector:
         self.blue = blue
         self.image = image
 
-    def detect(self, contour):
+    def detect(self, contour, colour):
         # initialize the shape name and approximate the contour
         shape = "unidentified"
         peri = cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, 0.02 * peri, True) # Estava 0.01, verificar tudo de novo a ver se não estraga...
+        factor = 0.02 if colour == "blue" else 0.01
+        approx = cv2.approxPolyDP(contour, factor * peri, True) # Estava 0.01, verificar tudo de novo a ver se não estraga...            
 
         print(f'LENNNNNN LADOS: { len(approx) }')
         # if the shape is a triangle, it will have 3 vertices
@@ -29,11 +33,21 @@ class ShapeDetector:
             else:
                 shape = "rectangle"
 
-        # if the shape is a pentagon, it will have 5 vertices
-        # elif len(approx) == 5:
-        #     shape = "pentagon"
-        elif len(approx) == 8:
+        # if the shape is a triangle, it will have 6 vertices (due to the corner curves)
+        elif len(approx) == 6 or len(approx) == 7:
+            distances = []
+            for x,y in zip(approx, approx[1:]):
+                d = math.sqrt((x[0][1]-y[0][1])*(x[0][1]-y[0][1]) + (x[0][0]-y[0][0])*(x[0][0]-y[0][0]))
+                distances.append(d)
+
+            distances.sort()
+            print(distances)
+            if distances[len(approx) - 5] < 1/4 * distances[len(approx) - 4] or distances[len(approx) - 4] < 1/4 * distances[len(approx) - 3]:
+                shape = "triangle"
+        
+        elif len(approx) == 8 and colour == "red":
             shape = "stop"
+
         # otherwise, we assume the shape is a circle
         # else:
         #     shape = "circle"
@@ -90,10 +104,10 @@ class ShapeDetector:
             M = cv2.moments(c)
             cX = int((M["m10"] / (M["m00"] + 1e-7))) #* ratio)
             cY = int((M["m01"] / (M["m00"] + 1e-7))) #* ratio)
-            shape = self.detect(c)
+            shape = self.detect(c, colour)
 
-            # if shape == "unidentified":
-            #     continue
+            if shape == "unidentified":
+                continue
             
             # multiply the contour (x, y)-coordinates by the resize ratio, then draw the contours and the name of the shape on the image
             c = c.astype("float")
@@ -117,8 +131,8 @@ class ShapeDetector:
             # write the shape
             cv2.putText(image, f"{colour} circle", (i[0] - 35, i[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-        cv2.imshow('Result', image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow('Result', image)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         return final_contours

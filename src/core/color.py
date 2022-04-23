@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+DEBUG = False
+
 class ColorDetector:
     def __init__(self, image) -> None:
         self.image = image
@@ -35,25 +37,28 @@ class ColorDetector:
         # Merge the mask and crop the red regions
         red_mask = cv2.bitwise_or(red_mask1, red_mask2)
 
-        # Generate mask (90-130) of blue
-        if saturation < 65:
-            blue_mask = cv2.inRange(hsv, (90,120,50), (130,255,255)) # valores originais
+        # Generate mask (100-140) of blue
+        if saturation < 40:
+            blue_mask = cv2.inRange(hsv, (100,130,50), (140,255,255))
+        elif saturation < 120:
+            blue_mask = cv2.inRange(hsv, (100,150,50), (140,255,255))
         else:
-            blue_mask = cv2.inRange(hsv, (90,150,50), (130,255,255))
+            blue_mask = cv2.inRange(hsv, (100,250,50), (140,255,255))
 
         red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
         # red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_DILATE, np.ones((3,3),np.uint8))
 
         blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))
-        # blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_DILATE, np.ones((5,5),np.uint8))
+        # blue_mask = cv2.morphologyEx(blue_mask, cv2.MORPH_DILATE, np.ones((3,3),np.uint8))
 
         red = cv2.bitwise_and(self.image, self.image, mask=red_mask)
         blue = cv2.bitwise_and(self.image, self.image, mask=blue_mask)
 
         # Show red tracing
-        cv2.imshow('ANTES DO SEGUNDO THRESHOLD', red)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        if DEBUG:
+            cv2.imshow('ANTES DO SEGUNDO THRESHOLD', blue)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
         red_hslimage  = cv2.cvtColor(red, cv2.COLOR_BGR2HLS) # TODO: tirar isto
         red_Lchannel = red_hslimage[:,:,1]
@@ -72,7 +77,6 @@ class ColorDetector:
         print(f' AVERAGGEEEEEE 22222222: {average_hsv_2}')
         average_hsv_red = cv2.mean(red_hsv,  red_mask)[:3]
         print(f' AVERAGGEEEEEE: {average_hsv_red}')
-        print(red_hsv)
 
         blue_hsv = cv2.cvtColor(blue, cv2.COLOR_BGR2HSV)
         average_hsv_blue = cv2.mean(blue_hsv,  blue_mask)[:3]
@@ -89,10 +93,11 @@ class ColorDetector:
         print(f' THRESHOLD BLUE A PARTIR DE: {blue_threshold}')
 
         # Show red tracing
-        show_hsv = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-        cv2.imshow('EFEITO DO CLAHE', show_hsv)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        if DEBUG:
+            show_hsv = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+            cv2.imshow('EFEITO DO CLAHE', show_hsv)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
         max_red1 = 10 if average_hsv_1[0] <= 15 else 20
         min_red2 = 170 if average_hsv_1[0] > 175 else 160 # TODO: devia ser average_hsv_2, mudar para verificar se não estraga
@@ -113,22 +118,25 @@ class ColorDetector:
         blue = cv2.bitwise_and(self.image, self.image, mask=blue_mask)
 
         # Show red tracing
-        cv2.imshow('Red Color', red)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        if DEBUG:
+            cv2.imshow('Red Color', red)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
         # Show blue tracing
-        cv2.imshow('Blue Color', blue)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        if DEBUG:
+            cv2.imshow('Blue Color', blue)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
         mask = cv2.bitwise_or(red, blue)
 
         result = cv2.bitwise_and(self.image, mask)
 
         # Show blue and red tracing
-        cv2.imshow('Red Color Detection', red)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        if DEBUG:
+            cv2.imshow('Red Color Detection', red)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
         return ("gray", red, blue, result)

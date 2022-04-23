@@ -33,7 +33,6 @@ if __name__ == "__main__":
     print('---------------------')
 
     for t, c, colour in contours:
-        # print('AQUII')
         # print_contour(t, c, colour)
         if t == "circle":
             center = (c['center'][0], c['center'][1])
@@ -88,57 +87,18 @@ if __name__ == "__main__":
         if append_contour or (processed_verified == len(processed_contours)):
             processed_contours.append((t, c, colour))
 
-    stop_count = 0
     for t, c, colour in processed_contours:
         if t == "circle":
             cv2.circle(image_data.image,(c['center']),c['radius'],(0,255,0),2) # draw the outer circle
             cv2.circle(image_data.image,(c['center']),2,(0,0,255),3) # draw the center of the circle
             cv2.putText(image_data.image, f"{colour} circle", (c['center'][0] - 35, c['center'][1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2) # write the shape
         else:
-            if t == "stop": stop_count += 1
             M = cv2.moments(c)
             cX = int((M["m10"] / (M["m00"] + 1e-7))) #* ratio)
             cY = int((M["m01"] / (M["m00"] + 1e-7))) #* ratio)
             cv2.drawContours(image_data.image, [c], -1, (0, 255, 0), 2)
             classification = f"{colour} {t}" if t != "stop" else "stop sign"
             cv2.putText(image_data.image, classification, (cX - 35, cY - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
-    if stop_count == 0:
-        # OpenCV opens images as BRG 
-        # but we want it as RGB We'll 
-        # also need a grayscale version
-        img_gray = cv2.cvtColor(image_data.image, cv2.COLOR_BGR2GRAY)
-        
-        # Use minSize because for not 
-        # bothering with extra-small 
-        # dots that would look like STOP signs
-        stop_data = cv2.CascadeClassifier(os.path.join("./src/core", 'stop_data.xml'))
-        
-        found = stop_data.detectMultiScale(img_gray, minSize =(20, 20), minNeighbors=8)
-        
-        # Don't do anything if there's 
-        # no sign
-        amount_found = len(found)
-        
-        if amount_found != 0:
-            
-            # There may be more than one
-            # sign in the image
-            for (x, y, width, height) in found:
-                
-                # We draw a green rectangle around
-                # every recognized sign
-                cv2.rectangle(image_data.image, (x, y), 
-                            (x + height, y + width), 
-                            (0, 255, 0), 5)
-                classification = "stop sign"
-                cv2.putText(image_data.image, classification, (x + int(height/2), y + int(width/2)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-                
-        # Creates the environment of 
-        # the picture and shows it
-        cv2.imshow('STOPS', image_data.image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
 
     # final_result = cv2.bitwise_or(image_data.image, image_shape)
 
