@@ -48,6 +48,7 @@ import torch
 from torchvision import datasets, transforms
 
 from image import TrafficSignsDataset
+from neural_network import ConvolutionalNeuralNetwork
 
 def read_images(filename):
     images = []
@@ -56,15 +57,23 @@ def read_images(filename):
             images.append(line)
     return images
 
-transform = transforms.Compose([transforms.Resize(255), transforms.CenterCrop(224), transforms.ToTensor()])
+transform = transforms.Compose([transforms.ToPILImage(), transforms.Resize(255), transforms.CenterCrop(224), transforms.ToTensor()])
 
+train_images = read_images('train.txt')
+test_images = read_images('test.txt')
 
+train_dataset = TrafficSignsDataset(train_images, None, transform)
+test_dataset = TrafficSignsDataset(test_images, None, transform)
 
-trafficSignsDataset = TrafficSignsDataset(train_images, None, transform)
+train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True, drop_last=True)
+test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuffle=True, drop_last=False)
 
-trainset = torch.utils.data.DataLoader(trafficSignsDataset, batch_size=10, shuffle=True)
-testset = torch.utils.data.DataLoader(trafficSignsDataset, batch_size=10, shuffle=True)
-
-for batch in trainset:
+for batch in test_dl:
     print("Data: ", batch)
     break
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using {device} device")
+
+model = ConvolutionalNeuralNetwork().to(device) # put model in device (GPU or CPU)
+print(model)
