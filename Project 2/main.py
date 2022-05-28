@@ -49,11 +49,12 @@ from torchvision import datasets, transforms
 
 from image import TrafficSignsDataset
 
-def read_images():
-    train_images = []
-    with open('train.txt') as file:
+def read_images(filename):
+    images = []
+    with open(filename) as file:
         while (line := file.readline().rstrip()):
-            train_images.append(line)
+            images.append(line)
+    return images
 
 transform = transforms.Compose([transforms.Resize(255), transforms.CenterCrop(224), transforms.ToTensor()])
 
