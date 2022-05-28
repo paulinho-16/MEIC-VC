@@ -4,9 +4,11 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
+import xml.etree.ElementTree as ET
 import torch
 
-DATA = './data/'
+IMAGES_DIR = './data/'
+ANNOTATIONS_DIR = './annotations/'
 
 class TrafficSignsDataset(Dataset):
   def __init__(self, images, labels, transform=None):
@@ -21,12 +23,20 @@ class TrafficSignsDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        image = io.imread(DATA +  self.images.iloc[idx, 0] + '.png')
+        image = io.imread(IMAGES_DIR +  self.images.iloc[idx, 0] + '.png')
+        tree = ET.parse(ANNOTATIONS_DIR + f'{self.images.iloc[idx, 0]}.xml')
 
+        labels = [movie.text for movie in tree.getroot().iter('name')]
+        
         if self.transform:
             image = self.transform(image)
 
-        sample = {'image': image, 'landmarks': "Default"}
-
+        sample = {'image': image, 'labels': {
+            'stop': 1 if 'stop' in labels else 0,
+            'trafficlight': 1 if 'trafficlight' in labels else 0,
+            'speedlimit': 1 if 'speedlimit' in labels else 0,
+            'crosswalk': 1 if 'crosswalk' in labels else 0
+        }
+        }
 
         return sample
