@@ -4,7 +4,7 @@ from torch import nn
 from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from neural_network import ConvolutionalNeuralNetwork
 
@@ -40,7 +40,9 @@ class Train():
 
         with torch.set_grad_enabled(is_train):
             for batch, (X, y) in enumerate(tqdm(dataloader)):
+                print('#################')
                 print(f'x: {X}; y: {y}')
+
                 X, y = X.to(self.device), y.to(self.device)
 
                 # Compute prediction error
@@ -96,23 +98,23 @@ class Train():
         print("Finished")
 
         # Analyse training evolution
-        def plotTrainingHistory(train_history, val_history):
-            plt.subplot(2, 1, 1)
-            plt.title('Cross Entropy Loss')
-            plt.plot(train_history['loss'], label='train')
-            plt.plot(val_history['loss'], label='val')
-            plt.legend(loc='best')
+        # def plotTrainingHistory(train_history, val_history):
+        #     plt.subplot(2, 1, 1)
+        #     plt.title('Cross Entropy Loss')
+        #     plt.plot(train_history['loss'], label='train')
+        #     plt.plot(val_history['loss'], label='val')
+        #     plt.legend(loc='best')
 
-            plt.subplot(2, 1, 2)
-            plt.title('Classification Accuracy')
-            plt.plot(train_history['accuracy'], label='train')
-            plt.plot(val_history['accuracy'], label='val')
+        #     plt.subplot(2, 1, 2)
+        #     plt.title('Classification Accuracy')
+        #     plt.plot(train_history['accuracy'], label='train')
+        #     plt.plot(val_history['accuracy'], label='val')
 
-            plt.tight_layout()
-            plt.legend(loc='best')
-            plt.show()
+        #     plt.tight_layout()
+        #     plt.legend(loc='best')
+        #     plt.show()
 
-        plotTrainingHistory(train_history, val_history)
+        # plotTrainingHistory(train_history, val_history)
 
         # Evaluate the model in the test set
 
@@ -126,21 +128,21 @@ class Train():
         test_loss, test_acc = self.epoch_iter(self.test_data, model, self.loss_fn, is_train=False)
         print(f"\nTest Loss: {test_loss:.3f} \nTest Accuracy: {test_acc:.3f}")
 
-        def showErrors(model, dataloader, num_examples=20):    
-            plt.figure(figsize=(15, 15))
+        # def showErrors(model, dataloader, num_examples=20):    
+        #     plt.figure(figsize=(15, 15))
 
-            for ind, (X, y) in enumerate(dataloader):
-                if ind >= num_examples: break
-                X, y = X.to(self.device), y.to(self.device)
-                pred = model(X)
-                probs = F.softmax(pred, dim=1)
-                final_pred = torch.argmax(probs, dim=1)
+        #     for ind, (X, y) in enumerate(dataloader):
+        #         if ind >= num_examples: break
+        #         X, y = X.to(self.device), y.to(self.device)
+        #         pred = model(X)
+        #         probs = F.softmax(pred, dim=1)
+        #         final_pred = torch.argmax(probs, dim=1)
 
-                plt.subplot(10, 10, ind + 1)
-                plt.axis("off")
-                plt.text(0, -1, y[0].item(), fontsize=14, color='green') # correct
-                plt.text(8, -1, final_pred[0].item(), fontsize=14, color='red')  # predicted
-                plt.imshow(X[0][0,:,:].cpu(), cmap='gray')
-                plt.show()
+        #         plt.subplot(10, 10, ind + 1)
+        #         plt.axis("off")
+        #         plt.text(0, -1, y[0].item(), fontsize=14, color='green') # correct
+        #         plt.text(8, -1, final_pred[0].item(), fontsize=14, color='red')  # predicted
+        #         plt.imshow(X[0][0,:,:].cpu(), cmap='gray')
+        #         plt.show()
 
-        showErrors(model, self.test_data)
+        # showErrors(model, self.test_data)

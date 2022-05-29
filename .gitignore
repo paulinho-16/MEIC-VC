@@ -1,6 +1,9 @@
 # Output folder
 output/
 
+# VSCode folder
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

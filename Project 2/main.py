@@ -1,47 +1,5 @@
-"""
-import matplotlib.pyplot as plt
 import numpy as np
-from torch.utils.data import DataLoader, Dataset
-import torchvision.transforms as T
-import torch
-import torch.nn as nn
-from torchvision.utils import make_grid
-from torchvision.utils import save_image
-from IPython.display import Image
-import matplotlib.pyplot as plt
-import numpy as np
-import random
-
-np.random.seed(42)
-
-import torch.nn.functional as F
-from torchvision import datasets, transforms, models
-from sklearn.metrics import accuracy_score
-from tqdm import tqdm
-from PIL import Image
-
-from image import TrafficSignsDataset
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Using {device} device")
-
-DATA = './data'
-BATCH_SIZE = 20
-NUM_WORKERS = 2
-
-# get cpu or gpu device for training
-
-traffic_sign_dataset = TrafficSignsDataset(ims=X_train)
-train_dl = DataLoader(traffic_sign_dataset, BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
-
-print(train_dl[0])
-
-"""
-
-# Vou comentar tudo, vamos fazer direitinho coisa por coisa
-
-import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import torch
 from torchvision import datasets, transforms
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -57,12 +15,28 @@ def read_images(filename):
             images.append(line)
     return images
 
-transform = transforms.Compose([
-        transforms.ToPILImage(), 
-        transforms.Resize(255), 
-        transforms.CenterCrop(224), 
-        transforms.ToTensor()
-    ])
+def get_mean_and_std(loader):
+    mean = 0
+    std = 0
+    total_images = 0
+    for batch, _ in loader:
+        batch_size = batch.size(0)
+        print(batch.shape)
+        batch = batch.view(batch_size, batch.size(1), -1)
+        print(batch.shape)
+
+transform = transforms.Compose([ # TODO: try another values/transformations
+    transforms.ToPILImage(),
+    transforms.Resize(224, 224),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(10),
+    transforms.CenterCrop(224),
+    transforms.ToTensor()
+    # transforms.Normalize(torch.Tensor(mean), torch.Tensor(std))
+])
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using {device} device\n")
 
 train_images = read_images('train.txt')
 test_images = read_images('test.txt')
@@ -78,22 +52,21 @@ test_size = 0.2 * len(indices)
 split = int(np.floor(test_size))
 val_idx, test_idx = indices[split:], indices[:split]
 
-val_sampler = SubsetRandomSampler(val_idx)
-test_sampler = SubsetRandomSampler(test_idx)
+validation_dataset = SubsetRandomSampler(val_idx)
+test_dataset = SubsetRandomSampler(test_idx)
 
 print(f'Training size: {len(train_dataset)}\nValidation size: {len(val_idx)} \nTest size: {len(test_idx)}')
 
 train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True, drop_last=True)
 test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuffle=True, drop_last=False)
 
-for batch in test_dl:
-    print("Data: ", batch)
-    break
+get_mean_and_std(train_dl)
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Using {device} device\n")
+for batch in train_dl:
+    print(batch)
+    break
 
 model = ConvolutionalNeuralNetwork().to(device) # put model in device (GPU or CPU)
 print(model)
 
-output = Train(device, model, train_dataset, val_sampler, test_sampler)
+output = Train(device, model, train_dataset, validation_dataset, test_dataset)

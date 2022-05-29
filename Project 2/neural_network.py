@@ -18,7 +18,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
             nn.Linear(4608, 128),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(128, 10),
+            nn.Linear(128, 4),
         )
 
     def forward(self, x):
