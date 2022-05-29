@@ -36,14 +36,18 @@ class Train():
         preds = []
         labels = []
 
-        print('-------------')
-
         with torch.set_grad_enabled(is_train):
             for batch, (X, y) in enumerate(tqdm(dataloader)):
                 print('#################')
                 print(f'x: {X}; y: {y}')
 
+                print(f'BATCH {batch}')
+                for image in X:
+                    print(f'IMAGE: {image.shape}')
+
                 X, y = X.to(self.device), y.to(self.device)
+
+                print(f'xSHAPE: {X.shape}')
 
                 # Compute prediction error
                 pred = model(X)
@@ -60,6 +64,10 @@ class Train():
 
                 probs = F.softmax(pred, dim=1)
                 final_pred = torch.argmax(probs, dim=1)
+
+                print('-------------------')
+                print(final_pred)
+                
                 preds.extend(final_pred.cpu().numpy())
                 labels.extend(y.cpu().numpy())
 

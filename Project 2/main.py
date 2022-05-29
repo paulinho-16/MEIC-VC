@@ -26,11 +26,11 @@ def get_mean_and_std(loader):
         print(batch.shape)
 
 transform = transforms.Compose([ # TODO: try another values/transformations
-    transforms.ToPILImage(),
-    transforms.Resize(224, 224),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(10),
-    transforms.CenterCrop(224),
+    # transforms.ToPILImage(),
+    # transforms.Resize((100, 100)),
+    #transforms.RandomHorizontalFlip(),
+    #transforms.RandomRotation(10),
+    #transforms.CenterCrop(224),
     transforms.ToTensor()
     # transforms.Normalize(torch.Tensor(mean), torch.Tensor(std))
 ])
@@ -57,16 +57,13 @@ test_dataset = SubsetRandomSampler(test_idx)
 
 print(f'Training size: {len(train_dataset)}\nValidation size: {len(val_idx)} \nTest size: {len(test_idx)}')
 
-train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=10, shuffle=True, drop_last=True)
-test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuffle=True, drop_last=False)
+train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, drop_last=True)
+validation_dl = torch.utils.data.DataLoader(validation_dataset, batch_size=64, shuffle=True, drop_last=False)
+test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True, drop_last=False)
 
-get_mean_and_std(train_dl)
-
-for batch in train_dl:
-    print(batch)
-    break
+# get_mean_and_std(train_dl)
 
 model = ConvolutionalNeuralNetwork().to(device) # put model in device (GPU or CPU)
 print(model)
 
-output = Train(device, model, train_dataset, validation_dataset, test_dataset)
+output = Train(device, model, train_dl, validation_dl, test_dl)
