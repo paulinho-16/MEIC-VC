@@ -50,4 +50,9 @@ class TrafficSignsDataset(Dataset):
         labels = np.asarray(labels)
         labels = torch.from_numpy(labels.astype('long'))
 
-        return (image, labels)
+        result = {
+            'image': torch.tensor(image, dtype=torch.float32),
+            'labels': torch.tensor(labels, dtype=torch.float32)
+        }
+
+        return result

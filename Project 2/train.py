@@ -37,20 +37,19 @@ class Train():
         labels = []
 
         with torch.set_grad_enabled(is_train):
-            for batch, (X, y) in enumerate(tqdm(dataloader)):
-                print('#################')
-                print(f'x: {X}; y: {y}')
+            for batch, data in enumerate(tqdm(dataloader)):
+                # print('#################')
+                # print(f'x: {X}; y: {y}')
 
-                print(f'BATCH {batch}')
-                for image in X:
-                    print(f'IMAGE: {image.shape}')
+                # print(f'BATCH {batch}')
+                # for image in X:
+                #     print(f'IMAGE: {image.shape}')
 
-                X, y = X.to(self.device), y.to(self.device)
-
-                print(f'xSHAPE: {X.shape}')
+                X, y = data['image'].to(self.device), data['labels'].to(self.device)
 
                 # Compute prediction error
                 pred = model(X)
+                pred = torch.sigmoid(pred)
                 loss = loss_fn(pred, y)
 
                 if is_train:
