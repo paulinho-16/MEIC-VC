@@ -1,6 +1,7 @@
 import torch
-import torch.nn.functional as F
 from torch import nn
+import torch.nn.functional as F
+import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -16,8 +17,10 @@ class Train():
         self.validation_data = validation_data
         self.test_data = test_data
 
-        self.loss_fn = nn.CrossEntropyLoss() # already includes the Softmax activation
+        # self.loss_fn = nn.CrossEntropyLoss() # already includes the Softmax activation
+        self.loss_fn = nn.BCELoss()
         self.optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        # self.optimizer = optim.Adam(model.parameters(), lr=lr)
 
         self.train()
 
@@ -64,8 +67,14 @@ class Train():
                 probs = F.softmax(pred, dim=1)
                 final_pred = torch.argmax(probs, dim=1)
 
-                print('-------------------')
-                print(final_pred)
+                threshold = 0.5
+                final_pred = np.array([[1 if i > threshold else 0 for i in j] for j in probs])
+                final_pred = torch.from_numpy(final_pred)
+
+                # print('-------------------')
+                # print(probs)
+                # print('-------------------')
+                # print(final_pred)
                 
                 preds.extend(final_pred.cpu().numpy())
                 labels.extend(y.cpu().numpy())
@@ -89,11 +98,11 @@ class Train():
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 save_dict = {'model': self.model.state_dict(), 'optimizer': self.optimizer.state_dict(), 'epoch': t}
-                torch.save(save_dict, 'best_model.pth')
+                torch.save(save_dict, 'best-model.pth')
 
             # save latest model
             save_dict = {'model': self.model.state_dict(), 'optimizer': self.optimizer.state_dict(), 'epoch': t}
-            torch.save(save_dict, 'latest_model.pth')
+            torch.save(save_dict, 'latest-model.pth')
 
             # save training history for plotting purposes
             train_history["loss"].append(train_loss)
@@ -129,7 +138,7 @@ class Train():
         # we could also load the optimizer and resume training if needed
 
         model = ConvolutionalNeuralNetwork().to(self.device)
-        checkpoint = torch.load('best_model.pth')
+        checkpoint = torch.load('best-model.pth')
         model.load_state_dict(checkpoint['model'])
 
         test_loss, test_acc = self.epoch_iter(self.test_data, model, self.loss_fn, is_train=False)

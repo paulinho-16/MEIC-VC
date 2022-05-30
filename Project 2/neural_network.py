@@ -70,20 +70,12 @@ class ConvolutionalNeuralNetwork(nn.Module):
         self.conv2 = nn.Conv2d(self.nb_filters, self.nb_filters, self.kernel_size)
         self.fc1 = nn.Linear(self.nb_filters * 48 * 48, 120)
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc3 = nn.Linear(84, 4)
 
     def forward(self, x):
-        print('kkkkkkkkkkkkkkkkkkkkkkkkkkkkk')
-        print(x.shape)
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        print('pppppppppppppppppppppppppppppp')
-        print(x.shape)
         x = torch.flatten(x, 1) # flatten all dimensions except batch
-        print('llllllllllllllllllllllllllll')
-        print(x.shape)
-        print(self.fc1(x))
-        print('rrrrrrrrrrrrrrrrrrrrrrrrrr')
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)

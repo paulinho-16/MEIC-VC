@@ -5,7 +5,7 @@ from torchvision import datasets, transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from train import Train
-from image import TrafficSignsDataset
+from dataset import TrafficSignsDataset
 from neural_network import ConvolutionalNeuralNetwork
 
 def read_images(filename):
@@ -25,45 +25,64 @@ def get_mean_and_std(loader):
         batch = batch.view(batch_size, batch.size(1), -1)
         print(batch.shape)
 
-transform = transforms.Compose([ # TODO: try another values/transformations
-    # transforms.ToPILImage(),
-    # transforms.Resize((100, 100)),
-    #transforms.RandomHorizontalFlip(),
-    #transforms.RandomRotation(10),
+train_transform = transforms.Compose([ # TODO: try another values/transformations
+    transforms.ToPILImage(),
+    transforms.Resize((200, 200)), # (400, 400)
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomRotation(degrees=45),
     #transforms.CenterCrop(224),
     transforms.ToTensor()
     # transforms.Normalize(torch.Tensor(mean), torch.Tensor(std))
+])
+
+validation_transform = transforms.Compose([ # TODO: try another values/transformations
+    transforms.ToPILImage(),
+    transforms.Resize((200, 200)), # (400, 400)
+    transforms.ToTensor()
+])
+
+test_transform = transforms.Compose([ # TODO: try another values/transformations
+    transforms.ToPILImage(),
+    transforms.Resize((200, 200)), # TODO: acho que não devia ter resize (ver link)
+    transforms.ToTensor()
 ])
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device\n")
 
 train_images = read_images('train.txt')
-test_images = read_images('test.txt')
+val_test_images = read_images('test.txt')
 
-train_dataset = TrafficSignsDataset(train_images, None, transform)
-test_dataset = TrafficSignsDataset(test_images, None, transform)
+test_ratio = int(0.8 * len(val_test_images))
+validation_ratio = len(val_test_images) - test_ratio
 
-# divide dataset into train-val-test subsets
-indices = list(range(len(test_dataset)))
-np.random.shuffle(indices, )
+test_images = list(val_test_images[:test_ratio])
+validation_images = list(val_test_images[-validation_ratio:])
 
-test_size = 0.2 * len(indices)
-split = int(np.floor(test_size))
-val_idx, test_idx = indices[split:], indices[:split]
+train_data = TrafficSignsDataset(train_images, train_transform)
+validation_data = TrafficSignsDataset(validation_images, validation_transform)
+test_data = TrafficSignsDataset(test_images, test_transform)
 
-validation_dataset = SubsetRandomSampler(val_idx)
-test_dataset = SubsetRandomSampler(test_idx)
+# # divide dataset into train-val-test subsets
+# indices = list(range(len(test_dataset)))
+# np.random.shuffle(indices, )
 
-print(f'Training size: {len(train_dataset)}\nValidation size: {len(val_idx)} \nTest size: {len(test_idx)}')
+# test_size = 0.2 * len(indices)
+# split = int(np.floor(test_size))
+# val_idx, test_idx = indices[split:], indices[:split]
 
-train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True, drop_last=True)
-validation_dl = torch.utils.data.DataLoader(validation_dataset, batch_size=64, shuffle=True, drop_last=False)
-test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=True, drop_last=False)
+# validation_dataset = SubsetRandomSampler(val_idx)
+# test_dataset = SubsetRandomSampler(test_idx)
+
+print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}')
+
+train_dl = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True, drop_last=True)
+validation_dl = torch.utils.data.DataLoader(validation_data, batch_size=64, shuffle=False, drop_last=False)
+test_dl = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=True, drop_last=False)
 
 # get_mean_and_std(train_dl)
 
 model = ConvolutionalNeuralNetwork().to(device) # put model in device (GPU or CPU)
-print(model)
+# print(model)
 
 output = Train(device, model, train_dl, validation_dl, test_dl)

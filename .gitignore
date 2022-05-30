@@ -1,5 +1,9 @@
 # Output folder
-output/
+Project\ 1/output/
+
+# Models
+Project\ 2/latest-model.pth
+Project\ 2/best-model.pth
 
 # VSCode folder
 .vscode/
