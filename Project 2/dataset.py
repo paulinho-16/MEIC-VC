@@ -42,9 +42,17 @@ class TrafficSignsDataset(Dataset):
         correct_labels = [movie.text for movie in tree.getroot().iter('name')]
 
         labels = []
+        
+        # TODO: Detect multiple classes, not just one
         for cl in CLASSES:
             labels.append(1) if cl in correct_labels else labels.append(0)
-        
+
+        teste = {'trafficlight': 0, 'stop': 1, 'speedlimit': 2, 'crosswalk': 3}
+
+        #labels.append(1) if "speedlimit" in correct_labels else labels.append(0)
+        if labels:
+            labels = [teste[correct_labels[0]],]
+
         labels = np.asarray(labels)
         labels = torch.from_numpy(labels.astype('long'))
 
