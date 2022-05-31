@@ -1,7 +1,7 @@
 # Exercises Part2 data
 Exercises/Part2/data
-Exercises/Part2/best_model.pth
-Exercises/Part2/latest_model.pth
+Exercises/Part2/*best_model.pth
+Exercises/Part2/*latest_model.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
