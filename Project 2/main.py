@@ -1,12 +1,15 @@
+from pickletools import optimize
 import numpy as np
-# import matplotlib.pyplot as plt
 import torch
-from torchvision import datasets, transforms
-from torch.utils.data.sampler import SubsetRandomSampler
+from torchvision import transforms
 
 from train import Train
-from dataset import TrafficSignsDataset
+from models import BasicVersion
+from dataset import ImageClassificationDataset
 from neural_network import ConvolutionalNeuralNetwork
+
+BATCH_SIZE = 16
+NUM_EPOCHS = 10
 
 def read_images(filename):
     images = []
@@ -15,7 +18,7 @@ def read_images(filename):
             images.append(line)
     return images
 
-def get_mean_and_std(loader):
+def get_mean_and_std(loader): # TODO: Normalize images (on train)
     mean = 0
     std = 0
     total_images = 0
@@ -59,30 +62,26 @@ validation_ratio = len(val_train_images) - train_ratio
 train_images = list(val_train_images[:train_ratio])
 validation_images = list(val_train_images[-validation_ratio:])
 
-train_data = TrafficSignsDataset(train_images, train_transform)
-validation_data = TrafficSignsDataset(validation_images, validation_transform)
-test_data = TrafficSignsDataset(test_images, test_transform)
+train_data = ImageClassificationDataset(train_images, train_transform)
+validation_data = ImageClassificationDataset(validation_images, validation_transform)
+test_data = ImageClassificationDataset(test_images, test_transform)
 
-# # divide dataset into train-val-test subsets
-# indices = list(range(len(test_dataset)))
-# np.random.shuffle(indices, )
+print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}\n')
 
-# test_size = 0.2 * len(indices)
-# split = int(np.floor(test_size))
-# val_idx, test_idx = indices[split:], indices[:split]
-
-# validation_dataset = SubsetRandomSampler(val_idx)
-# test_dataset = SubsetRandomSampler(test_idx)
-
-print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}')
-
-train_dl = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True, drop_last=True)
-validation_dl = torch.utils.data.DataLoader(validation_data, batch_size=64, shuffle=False, drop_last=False)
-test_dl = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=True, drop_last=False)
+train_dl = torch.utils.data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
+validation_dl = torch.utils.data.DataLoader(validation_data, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
+test_dl = torch.utils.data.DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True, drop_last=False)
 
 # get_mean_and_std(train_dl)
 
-model = ConvolutionalNeuralNetwork().to(device) # put model in device (GPU or CPU)
-# print(model)
+if __name__ == "__main__":
+    version = input('Enter the desired version (basic, intermediate, advanced): ')
 
-output = Train(device, model, train_dl, validation_dl, test_dl)
+    if version == 'basic':
+        architecture = input('Choose the architecture (vgg16, resnet): ')
+        model, loss_fn, optimizer = BasicVersion(architecture).get_model()
+        model = model.to(device)
+    else: # TODO: other versions
+        model = None
+
+    Train(device, model, loss_fn, optimizer, NUM_EPOCHS, train_dl, validation_dl, test_dl)

@@ -65,7 +65,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
             nn.Linear(128, 4),
         )
 
-        self.conv1 = nn.Conv2d(1, self.nb_filters, self.kernel_size)
+        self.conv1 = nn.Conv2d(3, self.nb_filters, self.kernel_size)
         self.pool = nn.MaxPool2d(self.pool_size)
         self.conv2 = nn.Conv2d(self.nb_filters, self.nb_filters, self.kernel_size)
         self.fc1 = nn.Linear(self.nb_filters * 48 * 48, 120)
