@@ -37,8 +37,11 @@ def read_images(filename):
 def showErrors(model, dataloader, num_examples=20):    
     plt.figure(figsize=(15, 15))
 
+    
     for ind, data in enumerate(tqdm(dataloader)):
-        if ind >= 200: break
+        if (ind % 100 == 0) and (ind != 0): plt.show()
+        ind = ind % 100
+
         inputs, label = data['image'], data['labels']
 
         # Expected all tensors to be on the same device
@@ -52,11 +55,12 @@ def showErrors(model, dataloader, num_examples=20):
         plt.subplot(10, 10, ind + 1)
         plt.axis("off")
         plt.text(0, -1, label[0].item(), fontsize=14, color='green') # correct
-        plt.text(10, -1, final_pred[0].item(), fontsize=14, color='red')  # predicted
+        plt.text(100, -1, final_pred[0].item(), fontsize=14, color='red')  # predicted
         
         inputs = inputs[0].cpu()
         plt.imshow(inputs.permute(1, 2, 0).numpy())
     plt.show()
+    
 
 def epoch_iter(dataloader, model, loss_fn, optimizer=None, is_train=True):
     if is_train:
