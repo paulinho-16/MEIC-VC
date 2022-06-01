@@ -19,11 +19,14 @@ class NeuralNetwork(nn.Module):
         super(NeuralNetwork, self).__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(200*200, 512),
+            nn.Conv2d(3, 6, 5),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(6, 16, 5),
+            nn.Linear(16*5*5, 120),
             nn.ReLU(),
-            nn.Linear(512, 512),
+            nn.Linear(120, 84),
             nn.ReLU(),
-            nn.Linear(512, 4)
+            nn.Linear(84, 4)
         )
 
     def forward(self, x):
@@ -192,7 +195,7 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss() # already includes the Softmax activation
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
 
-    num_epochs = 10
+    num_epochs = 300
     train_history = {'loss': [], 'accuracy': []}
     val_history = {'loss': [], 'accuracy': []}
     best_val_loss = np.inf

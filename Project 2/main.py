@@ -50,14 +50,14 @@ test_transform = transforms.Compose([ # TODO: try another values/transformations
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device\n")
 
-train_images = read_images('train.txt')
-val_test_images = read_images('test.txt')
+val_train_images = read_images('train.txt')
+test_images = read_images('test.txt')
 
-test_ratio = int(0.8 * len(val_test_images))
-validation_ratio = len(val_test_images) - test_ratio
+train_ratio = int(0.8 * len(val_train_images))
+validation_ratio = len(val_train_images) - train_ratio
 
-test_images = list(val_test_images[:test_ratio])
-validation_images = list(val_test_images[-validation_ratio:])
+train_images = list(val_train_images[:train_ratio])
+validation_images = list(val_train_images[-validation_ratio:])
 
 train_data = TrafficSignsDataset(train_images, train_transform)
 validation_data = TrafficSignsDataset(validation_images, validation_transform)

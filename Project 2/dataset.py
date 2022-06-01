@@ -31,7 +31,7 @@ class TrafficSignsDataset(Dataset):
 
         image = cv2.imread(f'{IMAGES_DIR}{self.images.iloc[idx, 0]}.png')
         try:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # TODO: COLOR_BGR2RGB?
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # TODO: COLOR_BGR2RGB?
         except:
             print(f'Error reading image {self.images.iloc[idx, 0]}.png')
             return None
@@ -44,14 +44,14 @@ class TrafficSignsDataset(Dataset):
         labels = []
         
         # TODO: Detect multiple classes, not just one
-        for cl in CLASSES:
-            labels.append(1) if cl in correct_labels else labels.append(0)
+        #for cl in CLASSES:
+        #    labels.append(1) if cl in correct_labels else labels.append(0)
 
         teste = {'trafficlight': 0, 'stop': 1, 'speedlimit': 2, 'crosswalk': 3}
 
         #labels.append(1) if "speedlimit" in correct_labels else labels.append(0)
-        if labels:
-            labels = [teste[correct_labels[0]],]
+        if correct_labels:
+            labels = teste[correct_labels[0]]
 
         labels = np.asarray(labels)
         labels = torch.from_numpy(labels.astype('long'))
