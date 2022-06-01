@@ -1,15 +1,45 @@
-from pickletools import optimize
-import numpy as np
 import torch
 from torchvision import transforms
 
-from train import Train
-from models import BasicVersion
-from dataset import ImageClassificationDataset
-from neural_network import ConvolutionalNeuralNetwork
+###################################################
+# Global Variables
+###################################################
+class Config:
+    model_name = "vgg16"
+    num_epochs = 2
+    learning_rate = 0.05
+    batch_size = 16
+    num_workers = 2 
+    device =  "cuda" if torch.cuda.is_available() else "cpu"
 
-BATCH_SIZE = 16
-NUM_EPOCHS = 10
+print(f"Using {Config.device} device\n")
+###################################################
+# Transforms
+###################################################
+transforms_dict = {
+    "train": transforms.Compose([ 
+                    transforms.ToPILImage(),
+                    transforms.Resize((200, 200)), 
+                    transforms.RandomHorizontalFlip(p=0.5),
+                    transforms.RandomRotation(degrees=45),
+                    transforms.ToTensor()
+                ]),
+    "validation": transforms.Compose([
+                    transforms.ToPILImage(),
+                    transforms.Resize((200, 200)), 
+                    transforms.ToTensor()
+                ]),
+    "test": transforms.Compose([
+                transforms.ToPILImage(),
+                transforms.Resize((200, 200)),
+                transforms.ToTensor()
+            ])
+}
+
+###################################################
+# Read Images
+###################################################
+from dataset import ImageClassificationDataset
 
 def read_images(filename):
     images = []
@@ -17,41 +47,6 @@ def read_images(filename):
         while (line := file.readline().rstrip()):
             images.append(line)
     return images
-
-def get_mean_and_std(loader): # TODO: Normalize images (on train)
-    mean = 0
-    std = 0
-    total_images = 0
-    for batch, _ in loader:
-        batch_size = batch.size(0)
-        print(batch.shape)
-        batch = batch.view(batch_size, batch.size(1), -1)
-        print(batch.shape)
-
-train_transform = transforms.Compose([ # TODO: try another values/transformations
-    transforms.ToPILImage(),
-    transforms.Resize((200, 200)), # (400, 400)
-    transforms.RandomHorizontalFlip(p=0.5),
-    transforms.RandomRotation(degrees=45),
-    #transforms.CenterCrop(224),
-    transforms.ToTensor()
-    # transforms.Normalize(torch.Tensor(mean), torch.Tensor(std))
-])
-
-validation_transform = transforms.Compose([ # TODO: try another values/transformations
-    transforms.ToPILImage(),
-    transforms.Resize((200, 200)), # (400, 400)
-    transforms.ToTensor()
-])
-
-test_transform = transforms.Compose([ # TODO: try another values/transformations
-    transforms.ToPILImage(),
-    transforms.Resize((200, 200)), # TODO: acho que não devia ter resize (ver link)
-    transforms.ToTensor()
-])
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Using {device} device\n")
 
 val_train_images = read_images('train.txt')
 test_images = read_images('test.txt')
@@ -62,20 +57,25 @@ validation_ratio = len(val_train_images) - train_ratio
 train_images = list(val_train_images[:train_ratio])
 validation_images = list(val_train_images[-validation_ratio:])
 
-train_data = ImageClassificationDataset(train_images, train_transform)
-validation_data = ImageClassificationDataset(validation_images, validation_transform)
-test_data = ImageClassificationDataset(test_images, test_transform)
+train_data =ImageClassificationDataset(train_images, transforms_dict['train'])
+validation_data = ImageClassificationDataset(validation_images, transforms_dict['validation'])
+test_data = ImageClassificationDataset(test_images, transforms_dict['test'])
 
+train_data = torch.utils.data.DataLoader(train_data, batch_size=Config.batch_size, shuffle=True, drop_last=True)
+validation_data = torch.utils.data.DataLoader(validation_data, batch_size=Config.batch_size, shuffle=False, drop_last=False)
+test_data = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, drop_last=False)
 print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}\n')
 
-train_dl = torch.utils.data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
-validation_dl = torch.utils.data.DataLoader(validation_data, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
-test_dl = torch.utils.data.DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True, drop_last=False)
-
-# get_mean_and_std(train_dl)
+###################################################
+# Models
+###################################################
+from models import ClassificationVGG16, ClassificationResNet
 
 if __name__ == "__main__":
-    version = input('Enter the desired version (basic, intermediate, advanced): ')
+    neural_network = ClassificationResNet()#ClassificationVGG16()
+    neural_network.run(train_data, test_data, validation_data)
+
+    """version = input('Enter the desired version (basic, intermediate, advanced): ')
 
     if version == 'basic':
         architecture = input('Choose the architecture (vgg16, resnet): ')
@@ -84,4 +84,4 @@ if __name__ == "__main__":
     else: # TODO: other versions
         model = None
 
-    Train(device, model, loss_fn, optimizer, NUM_EPOCHS, train_dl, validation_dl, test_dl)
+    Train(device, model, loss_fn, optimizer, NUM_EPOCHS, train_dl, validation_dl, test_dl)"""
