@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 import xml.etree.ElementTree as ET
 import torch
 
-IMAGES_DIR = './data/'
+IMAGES_DIR = './images/'
 ANNOTATIONS_DIR = './annotations/'
 CLASSES = ['trafficlight', 'stop', 'speedlimit', 'crosswalk']
 
