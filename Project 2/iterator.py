@@ -82,11 +82,11 @@ class Iterator:
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 save_dict = {'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'epoch': t}
-                torch.save(save_dict, Config.model_name + '_best_model.pth')
+                torch.save(save_dict, './pth_models/' + Config.model_name + '_best_model.pth')
 
             # Save latest model
             save_dict = {'model': model.state_dict(), 'optimizer': optimizer.state_dict(), 'epoch': t}
-            torch.save(save_dict, Config.model_name + '_latest_model.pth')
+            torch.save(save_dict, './pth_models/' + Config.model_name + '_latest_model.pth')
 
             # Values for plotting
             train_history["loss"].append(train_loss)
@@ -102,7 +102,7 @@ class Iterator:
         # Load the best model (i.e. model with the lowest val loss...might not be the last model)
         # We could also load the optimizer and resume training if needed
         model = model.to(Config.device)
-        checkpoint = torch.load('vgg16_best_model.pth')
+        checkpoint = torch.load('./pth_models/' + Config.model_name + '_best_model.pth')
         model.load_state_dict(checkpoint['model'])
 
         test_loss, test_acc = Iterator.epoch_iterator(test_data, model, loss_function, is_train=False)
