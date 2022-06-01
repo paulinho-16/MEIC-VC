@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from sklearn.metrics import accuracy_score
 from torchvision import transforms, models
 import matplotlib.pyplot as plt
-from dataset import TrafficSignsDataset
+from dataset import ImageClassificationDataset
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
@@ -207,9 +207,9 @@ if __name__ == "__main__":
     train_images = list(val_train_images[:train_ratio])
     validation_images = list(val_train_images[-validation_ratio:])
 
-    train_data = TrafficSignsDataset(train_images, train_transform)
-    validation_data = TrafficSignsDataset(validation_images, validation_transform)
-    test_data = TrafficSignsDataset(test_images, test_transform)
+    train_data =ImageClassificationDataset(train_images, train_transform)
+    validation_data = ImageClassificationDataset(validation_images, validation_transform)
+    test_data = ImageClassificationDataset(test_images, test_transform)
 
     train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=16, shuffle=True, drop_last=True)
     validation_dataloader = torch.utils.data.DataLoader(validation_data, batch_size=16, shuffle=False, drop_last=False)
