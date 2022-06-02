@@ -28,10 +28,11 @@ class ImageClassificationDataset(Dataset):
 
         image = cv2.imread(f'{Config.images_folder}{self.images.iloc[idx, 0]}.png')
         try:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # TODO: COLOR_BGR2RGB?
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         except:
             print(f'Error reading image {self.images.iloc[idx, 0]}.png')
             return None
+        
         if self.transform:
             image = self.transform(image)
 
@@ -41,14 +42,9 @@ class ImageClassificationDataset(Dataset):
         objects = [(obj.find('name').text, [int(obj.find('bndbox').find('xmin').text), int(obj.find('bndbox').find('ymin').text), int(obj.find('bndbox').find('xmax').text), int(obj.find('bndbox').find('ymax').text)]) for obj in objects]
 
         labels = []
-        
-        # TODO: Detect multiple classes, not just one
-        #for cl in CLASSES:
-        #    labels.append(1) if cl in correct_labels else labels.append(0)
 
         classes = {'trafficlight': 0, 'stop': 1, 'speedlimit': 2, 'crosswalk': 3}
 
-        #labels.append(1) if "speedlimit" in correct_labels else labels.append(0)
         greater_area = 0
         label = None
         if correct_labels:

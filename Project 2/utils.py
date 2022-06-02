@@ -1,5 +1,4 @@
 import torch
-
 import torch.nn.functional as F
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -7,7 +6,6 @@ import matplotlib.pyplot as plt
 class Utils:
     @staticmethod
     def learning_curve_graph(train_history, val_history):
-        print("here")
         plt.subplot(2, 1, 1)
         plt.title('Cross Entropy Loss')
         plt.plot(train_history['loss'], label='train')
@@ -23,12 +21,10 @@ class Utils:
         plt.legend(loc='best')
         plt.show()
     
-
     @staticmethod
     def display_predictions(model, data):    
         plt.figure(figsize=(15, 15))
 
-    
         for ind, data in enumerate(tqdm(data)):
             if (ind % 100 == 0) and (ind != 0): plt.show()
             ind = ind % 100
@@ -53,7 +49,6 @@ class Utils:
             plt.axis("off")
             plt.text(0, -1, label[0].item(), fontsize=14, color='green') # correct
             plt.text(100, -1, final_pred[0].item(), fontsize=14, color='red')  # predicted
-            
-            
+
             plt.imshow(inputs.permute(1, 2, 0).numpy())
         plt.show()

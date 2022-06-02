@@ -52,14 +52,15 @@ validation_ratio = len(val_train_images) - train_ratio
 train_images = list(val_train_images[:train_ratio])
 validation_images = list(val_train_images[-validation_ratio:])
 
-train_data =ImageClassificationDataset(train_images, transforms_dict['train'])
+train_data = ImageClassificationDataset(train_images, transforms_dict['train'])
 validation_data = ImageClassificationDataset(validation_images, transforms_dict['validation'])
 test_data = ImageClassificationDataset(test_images, transforms_dict['test'])
+
+print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}\n')
 
 train_data = torch.utils.data.DataLoader(train_data, batch_size=Config.batch_size, shuffle=True, drop_last=True)
 validation_data = torch.utils.data.DataLoader(validation_data, batch_size=Config.batch_size, shuffle=False, drop_last=False)
 test_data = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, drop_last=False)
-print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}\n')
 
 ###################################################
 # Models
@@ -67,18 +68,20 @@ print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)
 from models import ClassificationVGG16, ClassificationResNet, ClassificationCustomModel
 
 if __name__ == "__main__":
-    neural_network = ClassificationVGG16(True)
-    neural_network = ClassificationResNet(True)
-    neural_network = ClassificationCustomModel(True)
-    neural_network.run(train_data, test_data, validation_data)
-
-    """version = input('Enter the desired version (basic, intermediate, advanced): ')
+    version = input('Enter the desired version (basic, intermediate, advanced): ')
 
     if version == 'basic':
         architecture = input('Choose the architecture (vgg16, resnet): ')
-        model, loss_fn, optimizer = BasicVersion(architecture).get_model()
-        model = model.to(device)
+        if architecture == 'vgg16':
+            neural_network = ClassificationVGG16(True)
+        elif architecture == 'resnet':
+            neural_network = ClassificationResNet(True)
+    elif version == 'intermediate':
+        neural_network = ClassificationCustomModel(True)
     else: # TODO: other versions
         model = None
 
-    Train(device, model, loss_fn, optimizer, NUM_EPOCHS, train_dl, validation_dl, test_dl)"""
+    if neural_network is not None:
+        neural_network.run(train_data, test_data, validation_data)
+    else:
+        print('Invalid neural network')
