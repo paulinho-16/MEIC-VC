@@ -1,16 +1,12 @@
-import os
 import cv2
 import numpy as np
 import pandas as pd
 from bbox import BBox2D
-from PIL import Image, ImageOps
 from torch.utils.data import Dataset
 import xml.etree.ElementTree as ET
 import torch
 
-IMAGES_DIR = './data/images/'
-ANNOTATIONS_DIR = './data/annotations/'
-CLASSES = ['trafficlight', 'stop', 'speedlimit', 'crosswalk']
+from config import Config
 
 class ImageClassificationDataset(Dataset):
     def __init__(self, images, transform=None):
@@ -30,7 +26,7 @@ class ImageClassificationDataset(Dataset):
         # image = image.resize((200, 200))
         # image = ImageOps.grayscale(image)
 
-        image = cv2.imread(f'{IMAGES_DIR}{self.images.iloc[idx, 0]}.png')
+        image = cv2.imread(f'{Config.images_folder}{self.images.iloc[idx, 0]}.png')
         try:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # TODO: COLOR_BGR2RGB?
         except:
@@ -39,7 +35,7 @@ class ImageClassificationDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        tree = ET.parse(ANNOTATIONS_DIR + f'{self.images.iloc[idx, 0]}.xml')
+        tree = ET.parse(Config.annotations_folder + f'{self.images.iloc[idx, 0]}.xml')
         correct_labels = [movie.text for movie in tree.getroot().iter('name')]
         objects = [obj for obj in tree.getroot().iter('object')]
         objects = [(obj.find('name').text, [int(obj.find('bndbox').find('xmin').text), int(obj.find('bndbox').find('ymin').text), int(obj.find('bndbox').find('xmax').text), int(obj.find('bndbox').find('ymax').text)]) for obj in objects]
@@ -92,7 +88,7 @@ class ImageMultiLabelDataset(Dataset):
         # image = image.resize((200, 200))
         # image = ImageOps.grayscale(image)
 
-        image = cv2.imread(f'{IMAGES_DIR}{self.images.iloc[idx, 0]}.png')
+        image = cv2.imread(f'{Config.images_folder}{self.images.iloc[idx, 0]}.png')
         try:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         except:
@@ -101,7 +97,7 @@ class ImageMultiLabelDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        tree = ET.parse(ANNOTATIONS_DIR + f'{self.images.iloc[idx, 0]}.xml')
+        tree = ET.parse(Config.annotations_folder + f'{self.images.iloc[idx, 0]}.xml')
         correct_labels = [movie.text for movie in tree.getroot().iter('name')]
 
         labels = []

@@ -1,22 +1,13 @@
-from __future__ import annotations
 import torch
 from torchvision import transforms
 
 ###################################################
 # Global Variables
 ###################################################
-class Config:
-    model_name = "vgg16"
-    data_folder = './data'
-    annotations_folder = '/annotations'
-    images_folder = '/images'
-    num_epochs = 2
-    learning_rate = 0.05
-    batch_size = 16
-    num_workers = 2 
-    device =  "cuda" if torch.cuda.is_available() else "cpu"
+from config import Config
 
 print(f"Using {Config.device} device\n")
+
 ###################################################
 # Transforms
 ###################################################
@@ -73,12 +64,12 @@ print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)
 ###################################################
 # Models
 ###################################################
-from models import ClassificationVGG16, ClassificationResNet
+from models import ClassificationVGG16, ClassificationResNet, ClassificationCustomModel
 
 if __name__ == "__main__":
     neural_network = ClassificationVGG16(True)
     neural_network = ClassificationResNet(True)
-
+    neural_network = ClassificationCustomModel(True)
     neural_network.run(train_data, test_data, validation_data)
 
     """version = input('Enter the desired version (basic, intermediate, advanced): ')

@@ -3,17 +3,11 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
-from utils import Utils
 
-class Config:
-    model_name = "vgg16"
-    num_epochs = 2
-    learning_rate = 0.05
-    batch_size = 16
-    num_workers = 2 
-    device = 'cuda'
+# Custom imports
+from utils import Utils
+from config import Config
 
 class Iterator:
     @staticmethod
