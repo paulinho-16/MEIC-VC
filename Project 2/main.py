@@ -14,19 +14,19 @@ print(f"Using {Config.device} device\n")
 transforms_dict = {
     "train": transforms.Compose([ 
                     transforms.ToPILImage(),
-                    transforms.Resize((200, 200)), 
+                    transforms.Resize((Config.images_size, Config.images_size)), 
                     transforms.RandomHorizontalFlip(p=0.5),
                     transforms.RandomRotation(degrees=45),
                     transforms.ToTensor()
                 ]),
     "validation": transforms.Compose([
                     transforms.ToPILImage(),
-                    transforms.Resize((200, 200)), 
+                    transforms.Resize((Config.images_size, Config.images_size)), 
                     transforms.ToTensor()
                 ]),
     "test": transforms.Compose([
                 transforms.ToPILImage(),
-                transforms.Resize((200, 200)),
+                transforms.Resize((Config.images_size, Config.images_size)),
                 transforms.ToTensor()
             ])
 }
@@ -65,7 +65,7 @@ test_data = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, d
 ###################################################
 # Models
 ###################################################
-from models import ClassificationVGG16, ClassificationResNet, ClassificationCustomModel
+from models import ClassificationVGG16, ClassificationResNet, ClassificationCustomModel, ClassificationMultilabel
 
 if __name__ == "__main__":
     version = input('Enter the desired version (basic, intermediate, advanced): ')
@@ -78,8 +78,8 @@ if __name__ == "__main__":
             neural_network = ClassificationResNet(True)
     elif version == 'intermediate':
         neural_network = ClassificationCustomModel(True)
-    else: # TODO: other versions
-        model = None
+    elif version == 'advanced':
+        neural_network = ClassificationMultilabel(True)
 
     if neural_network is not None:
         neural_network.run(train_data, test_data, validation_data)

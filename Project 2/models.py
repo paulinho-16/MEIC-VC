@@ -1,4 +1,5 @@
 from torch import nn
+from math import prod
 from torchvision import models
 
 from utils import Utils
@@ -48,20 +49,26 @@ class ClassificationVGG16:
 class ClassificationCustomNetwork(nn.Module):
     def __init__(self):
         super(ClassificationCustomNetwork, self).__init__()
-        self.pool_size = 2
-        self.nb_filters = 32
-        self.kernel_size = 5
+        self.num_conv_layer = 2
+        self.num_max_pool = 1
+        output_size = Config.images_size
+        for _ in range(self.num_conv_layer):
+            output_size = Utils.calculate_input_size(output_size)
+        self.output_shape = (output_size, output_size, Config.num_filters)
+
+        for _ in range(self.num_max_pool):
+            self.output_shape = (self.output_shape[0]/Config.pool_size, self.output_shape[1]/Config.pool_size, self.output_shape[2])
 
         self.layers = nn.Sequential(
-            nn.Conv2d(3, self.nb_filters, self.kernel_size),
+            nn.Conv2d(3, Config.num_filters, Config.kernel_size),
             nn.ReLU(),
-            nn.Conv2d(self.nb_filters, self.nb_filters, self.kernel_size),
+            nn.Conv2d(Config.num_filters, Config.num_filters, Config.kernel_size),
             nn.ReLU(),
-            nn.MaxPool2d(self.pool_size),
+            nn.MaxPool2d(Config.pool_size),
 
             nn.Dropout(0.25),
             nn.Flatten(),
-            nn.Linear(294912, 128), #TODO: Como obter este valor? Quais são as contas?
+            nn.Linear(int(prod(self.output_shape)), 128),
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(128, 4),
@@ -84,6 +91,20 @@ class ClassificationCustomModel:
         Utils.learning_curve_graph(train_history, val_history)
 
         Iterator.test(model, test_dl, loss_function)
+
 ###################################################
 # Advanced - adapt the previous models to solve the original problem, i.e. multilabel classification, and compare their performance
 ###################################################
+class ClassificationMultilabel: # TODO: multilabel
+    def __init__(self, pre_trained = True):
+        self.pre_trained = pre_trained
+
+    def run(self, train_dl, test_dl, validation_dl): 
+        model = ClassificationCustomNetwork().to(Config.device) 
+
+        loss_function = nn.CrossEntropyLoss()
+
+        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_function)
+        Utils.learning_curve_graph(train_history, val_history)
+
+        Iterator.test(model, test_dl, loss_function)

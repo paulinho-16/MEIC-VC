@@ -3,7 +3,13 @@ import torch.nn.functional as F
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+from config import Config
+
 class Utils:
+    @staticmethod
+    def calculate_input_size(input_size):
+        return (input_size - Config.kernel_size + 2*Config.padding) / Config.stride + 1
+
     @staticmethod
     def learning_curve_graph(train_history, val_history):
         plt.subplot(2, 1, 1)
