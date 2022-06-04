@@ -1,3 +1,4 @@
+import sys
 from torch import nn
 from math import prod
 from torchvision import models
@@ -13,11 +14,14 @@ class ClassificationResNet:
     def __init__(self, pre_trained = True):
         self.pre_trained = pre_trained
 
-    def run(self, train_dl, test_dl, validation_dl):
+    def model(self):
         model = models.resnet50(pretrained=self.pre_trained)
         model.fc = nn.Linear(2048, 4)
-
         model.to(Config.device)
+        return model
+
+    def run(self, train_dl, test_dl, validation_dl):
+        model = self.model()
 
         loss_function = nn.CrossEntropyLoss() 
 
@@ -30,13 +34,16 @@ class ClassificationVGG16:
     def __init__(self, pre_trained = True):
         self.pre_trained = pre_trained
 
-    def run(self, train_dl, test_dl, validation_dl):
+    def model(self):
         model = models.vgg16(pretrained=self.pre_trained)
-
         model.classifier[6] = nn.Linear(4096, 4)
         model.to(Config.device)
+        return model
 
-        loss_function = nn.CrossEntropyLoss()
+    def run(self, train_dl, test_dl, validation_dl):
+        model = self.model()
+
+        loss_function = nn.BCELoss()
 
         train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_function)
         Utils.learning_curve_graph(train_history, val_history)
@@ -53,7 +60,7 @@ class ClassificationCustomNetwork(nn.Module):
         self.num_max_pool = 1
         output_size = Config.images_size
         for _ in range(self.num_conv_layer):
-            output_size = Utils.calculate_input_size(output_size)
+            output_size = Utils.calculate_output_size(output_size)
         self.output_shape = (output_size, output_size, Config.num_filters)
 
         for _ in range(self.num_max_pool):
@@ -82,8 +89,11 @@ class ClassificationCustomModel:
     def __init__(self, pre_trained = True):
         self.pre_trained = pre_trained
 
+    def model(self):
+        return ClassificationCustomNetwork().to(Config.device)
+
     def run(self, train_dl, test_dl, validation_dl):
-        model = ClassificationCustomNetwork().to(Config.device) 
+        model = self.model()
 
         loss_function = nn.CrossEntropyLoss()
 
@@ -95,16 +105,23 @@ class ClassificationCustomModel:
 ###################################################
 # Advanced - adapt the previous models to solve the original problem, i.e. multilabel classification, and compare their performance
 ###################################################
-class ClassificationMultilabel: # TODO: multilabel
-    def __init__(self, pre_trained = True):
+class ClassificationMultilabel:
+    def __init__(self, model_name, pre_trained = True):
+        self.model_name = model_name
         self.pre_trained = pre_trained
 
+    def model(self):
+        if self.model_name == 'vgg16': return ClassificationVGG16().model()
+        elif self.model_name == 'resnet': return ClassificationResNet().model()
+        elif self.model_name == 'custom': return ClassificationCustomModel().model()
+        sys.exit('Invalid model')
+
     def run(self, train_dl, test_dl, validation_dl): 
-        model = ClassificationCustomNetwork().to(Config.device) 
+        model = ClassificationCustomNetwork().to(Config.device)
 
         loss_function = nn.CrossEntropyLoss()
 
-        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_function)
+        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_function, multilabel=True)
         Utils.learning_curve_graph(train_history, val_history)
 
-        Iterator.test(model, test_dl, loss_function)
+        Iterator.test(model, test_dl, loss_function, multilabel=True)

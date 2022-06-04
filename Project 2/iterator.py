@@ -10,7 +10,7 @@ from config import Config
 
 class Iterator:
     @staticmethod
-    def epoch_iterator(dataloader, model, loss_function, optimizer=None, is_train=True):
+    def epoch_iterator(dataloader, model, loss_function, optimizer=None, is_train=True, multilabel=False):
         if is_train: assert optimizer is not None, 'When training, please provide an optimizer.'
         
         num_batches = len(dataloader)
@@ -26,7 +26,8 @@ class Iterator:
 
         with torch.set_grad_enabled(is_train):
             for batch, data in enumerate(tqdm(dataloader)):
-                X, y = data['image'].to(Config.device), data['labels'].type(torch.LongTensor).to(Config.device)
+                data['labels'] = data['labels'].type(torch.LongTensor) if not multilabel else data['labels']
+                X, y = data['image'].to(Config.device), data['labels'].to(Config.device)
 
                 # Compute prediction error
                 pred = model(X)
@@ -44,31 +45,36 @@ class Iterator:
                 probs = F.softmax(pred, dim=1)
                 final_pred = torch.argmax(probs, dim=1)
 
-                # TODO: for multilabel
-                # threshold = 0.5
-                # final_pred = np.array([[1 if i > threshold else 0 for i in j] for j in probs])
-                # final_pred = torch.from_numpy(final_pred)
+                if multilabel:
+                    threshold = 0.5
+                    final_pred = np.array([[1 if i > threshold else 0 for i in j] for j in probs])
+                    final_pred = torch.from_numpy(final_pred)
                 
                 preds.extend(final_pred.cpu().numpy())
                 labels.extend(y.cpu().numpy())
 
+        # print('----------')
+        # print(len(labels))
+        # print(len(preds))
+
         return total_loss / num_batches, accuracy_score(labels, preds)
 
     @staticmethod
-    def train(model, train_dataloader, validation_dataloader, loss_fn):
+    def train(model, train_dataloader, validation_dataloader, loss_fn, multilabel=False):
         train_history = {'loss': [], 'accuracy': []}
         val_history = {'loss': [], 'accuracy': []}
 
-        optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(model.parameters(), lr=1e-4) if multilabel else torch.optim.SGD(model.parameters(), lr=1e-3)
+        
         best_val_loss = np.inf
         print("Start training...")
 
         for t in range(Config.num_epochs):
             print(f"\nEpoch {t+1}")
-            train_loss, train_acc = Iterator.epoch_iterator(train_dataloader, model, loss_fn, optimizer)
+            train_loss, train_acc = Iterator.epoch_iterator(train_dataloader, model, loss_fn, optimizer, multilabel=multilabel)
             print(f"Train loss: {train_loss:.3f} \t Train acc: {train_acc:.3f}")
 
-            val_loss, val_acc = Iterator.epoch_iterator(validation_dataloader, model, loss_fn, is_train=False)
+            val_loss, val_acc = Iterator.epoch_iterator(validation_dataloader, model, loss_fn, is_train=False, multilabel=multilabel)
             print(f"Val loss: {val_loss:.3f} \t Val acc: {val_acc:.3f}")
 
             # Save best model
@@ -91,14 +97,14 @@ class Iterator:
         return train_history, val_history
 
     @staticmethod
-    def test(model, test_data, loss_function):
+    def test(model, test_data, loss_function, multilabel=False):
         # Load the best model (i.e. model with the lowest val loss...might not be the last model)
         # We could also load the optimizer and resume training if needed
         model = model.to(Config.device)
         checkpoint = torch.load('./pth_models/' + Config.model_name + '_best_model.pth')
         model.load_state_dict(checkpoint['model'])
 
-        test_loss, test_acc = Iterator.epoch_iterator(test_data, model, loss_function, is_train=False)
+        test_loss, test_acc = Iterator.epoch_iterator(test_data, model, loss_function, is_train=False, multilabel=multilabel)
         print(f"\nTest Loss: {test_loss:.3f} \nTest Accuracy: {test_acc:.3f}")
 
-        Utils.display_predictions(model, test_data)
+        Utils.display_predictions(model, test_data, multilabel)

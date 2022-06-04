@@ -2,7 +2,7 @@ import torch
 
 class Config:
     model_name = "vgg16"
-    classes = ['trafficlight', 'stop', 'speedlimit', 'crosswalk']
+    classes = {'trafficlight': 0, 'stop': 1, 'speedlimit': 2, 'crosswalk': 3}
     data_folder = './data'
     annotations_folder = './data/annotations/'
     images_folder = './data/images/'

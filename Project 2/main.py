@@ -1,3 +1,4 @@
+import sys
 import torch
 from torchvision import transforms
 
@@ -34,7 +35,7 @@ transforms_dict = {
 ###################################################
 # Read Images
 ###################################################
-from dataset import ImageClassificationDataset
+from dataset import ImageClassificationDataset, ImageMultiLabelDataset
 
 def read_images(filename):
     images = []
@@ -52,16 +53,6 @@ validation_ratio = len(val_train_images) - train_ratio
 train_images = list(val_train_images[:train_ratio])
 validation_images = list(val_train_images[-validation_ratio:])
 
-train_data = ImageClassificationDataset(train_images, transforms_dict['train'])
-validation_data = ImageClassificationDataset(validation_images, transforms_dict['validation'])
-test_data = ImageClassificationDataset(test_images, transforms_dict['test'])
-
-print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}\n')
-
-train_data = torch.utils.data.DataLoader(train_data, batch_size=Config.batch_size, shuffle=True, drop_last=True)
-validation_data = torch.utils.data.DataLoader(validation_data, batch_size=Config.batch_size, shuffle=False, drop_last=False)
-test_data = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, drop_last=False)
-
 ###################################################
 # Models
 ###################################################
@@ -76,12 +67,29 @@ if __name__ == "__main__":
             neural_network = ClassificationVGG16(True)
         elif architecture == 'resnet':
             neural_network = ClassificationResNet(True)
+        else:
+            sys.exit('Invalid architecture')
     elif version == 'intermediate':
         neural_network = ClassificationCustomModel(True)
     elif version == 'advanced':
-        neural_network = ClassificationMultilabel(True)
-
-    if neural_network is not None:
-        neural_network.run(train_data, test_data, validation_data)
+        model = input('Choose the model (vgg16, resnet, custom): ')
+        neural_network = ClassificationMultilabel(model, True)
     else:
-        print('Invalid neural network')
+        sys.exit('Invalid version')
+
+    if version == 'advanced':
+        train_data = ImageMultiLabelDataset(train_images, transforms_dict['train'])
+        validation_data = ImageMultiLabelDataset(validation_images, transforms_dict['validation'])
+        test_data = ImageMultiLabelDataset(test_images, transforms_dict['test'])
+    else:
+        train_data = ImageClassificationDataset(train_images, transforms_dict['train'])
+        validation_data = ImageClassificationDataset(validation_images, transforms_dict['validation'])
+        test_data = ImageClassificationDataset(test_images, transforms_dict['test'])
+
+    print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}\n')
+
+    train_data = torch.utils.data.DataLoader(train_data, batch_size=Config.batch_size, shuffle=True, drop_last=True)
+    validation_data = torch.utils.data.DataLoader(validation_data, batch_size=Config.batch_size, shuffle=False, drop_last=False)
+    test_data = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, drop_last=False)
+    
+    neural_network.run(train_data, test_data, validation_data)

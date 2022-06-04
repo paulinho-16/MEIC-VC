@@ -17,15 +17,6 @@ class ImageClassificationDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, idx):
-        # image = io.imread(IMAGES_DIR + self.images.iloc[idx, 0] + '.png', as_gray=True)
-        # image = cv2.imread(f'{IMAGES_DIR}{self.images.iloc[idx, 0]}.png')
-        # image = np.array(image, dtype=np.uint8).reshape((280, 280))
-        # image = Image.fromarray(image, mode='L')
-
-        # image = Image.open(os.path.join(IMAGES_DIR, self.images.iloc[idx, 0] + '.png'))
-        # image = image.resize((200, 200))
-        # image = ImageOps.grayscale(image)
-
         image = cv2.imread(f'{Config.images_folder}{self.images.iloc[idx, 0]}.png')
         try:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -43,8 +34,6 @@ class ImageClassificationDataset(Dataset):
 
         labels = []
 
-        classes = {'trafficlight': 0, 'stop': 1, 'speedlimit': 2, 'crosswalk': 3}
-
         greater_area = 0
         label = None
         if correct_labels:
@@ -54,7 +43,7 @@ class ImageClassificationDataset(Dataset):
                 greater_area = area if area > greater_area else greater_area
                 label = obj[0] if (area > greater_area or label is None) else label
         
-        labels = classes[label]
+        labels = Config.classes[label]
         labels = np.asarray(labels)
         labels = torch.from_numpy(labels.astype('long'))
 
@@ -75,15 +64,6 @@ class ImageMultiLabelDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, idx):
-        # image = io.imread(IMAGES_DIR + self.images.iloc[idx, 0] + '.png', as_gray=True)
-        # image = cv2.imread(f'{IMAGES_DIR}{self.images.iloc[idx, 0]}.png')
-        # image = np.array(image, dtype=np.uint8).reshape((280, 280))
-        # image = Image.fromarray(image, mode='L')
-
-        # image = Image.open(os.path.join(IMAGES_DIR, self.images.iloc[idx, 0] + '.png'))
-        # image = image.resize((200, 200))
-        # image = ImageOps.grayscale(image)
-
         image = cv2.imread(f'{Config.images_folder}{self.images.iloc[idx, 0]}.png')
         try:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -97,15 +77,8 @@ class ImageMultiLabelDataset(Dataset):
         correct_labels = [movie.text for movie in tree.getroot().iter('name')]
 
         labels = []
-        
-        # TODO: for multilabel
-        # for cl in CLASSES:
-        #    labels.append(1) if cl in correct_labels else labels.append(0)
-
-        teste = {'trafficlight': 0, 'stop': 1, 'speedlimit': 2, 'crosswalk': 3}
-
-        if correct_labels:
-            labels = teste[correct_labels[0]]
+        for cl in Config.classes.keys():
+            labels.append(1) if cl in correct_labels else labels.append(0)
 
         labels = np.asarray(labels)
         labels = torch.from_numpy(labels.astype('long'))
