@@ -1,5 +1,6 @@
 import sys
 import torch
+from torch import nn
 from torchvision import transforms
 
 ###################################################
@@ -88,8 +89,31 @@ if __name__ == "__main__":
 
     print(f'Training size: {len(train_data)}\nValidation size: {len(validation_data)} \nTest size: {len(test_data)}\n')
 
+    labels_quantity = {'trafficlight': [], 'stop': [], 'speedlimit': [], 'crosswalk': []}
+    for image in train_data:
+        if version == 'advanced':
+            labels_idx = [i for i, x in enumerate(list(image['labels'])) if x == 1]
+            labels = [list(labels_quantity)[idx] for idx in labels_idx]
+            for label in labels:
+                labels_quantity[label].append(image)
+        else:
+            label = list(labels_quantity)[int(image['labels'].item())]
+            labels_quantity[label].append(image)
+
+    print('Labels quantity:')
+    for key, value in labels_quantity.items():
+        print(f'\t{key}: {len(value)} images')
+
+    total_presences = sum([len(value) for value in labels_quantity.values()])
+    weights = [1 - len(value)/total_presences for value in labels_quantity.values()]
+
+    if version == 'advanced':
+        loss_fn = nn.CrossEntropyLoss(weight = torch.tensor(weights, dtype=torch.float, device='cuda:0'))
+    else:
+        loss_fn = nn.CrossEntropyLoss(weight = torch.tensor(weights, dtype=torch.float, device='cuda:0'))
+
     train_data = torch.utils.data.DataLoader(train_data, batch_size=Config.batch_size, shuffle=True, drop_last=True)
     validation_data = torch.utils.data.DataLoader(validation_data, batch_size=Config.batch_size, shuffle=False, drop_last=False)
     test_data = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, drop_last=False)
     
-    neural_network.run(train_data, test_data, validation_data)
+    neural_network.run(train_data, test_data, validation_data, loss_fn)

@@ -20,15 +20,13 @@ class ClassificationResNet:
         model.to(Config.device)
         return model
 
-    def run(self, train_dl, test_dl, validation_dl):
+    def run(self, train_dl, test_dl, validation_dl, loss_fn):
         model = self.model()
 
-        loss_function = nn.CrossEntropyLoss() 
-
-        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_function)
+        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_fn)
         Utils.learning_curve_graph(train_history, val_history)
 
-        Iterator.test(model, test_dl, loss_function)
+        Iterator.test(model, test_dl, loss_fn)
 
 class ClassificationVGG16:
     def __init__(self, pre_trained = True):
@@ -40,15 +38,13 @@ class ClassificationVGG16:
         model.to(Config.device)
         return model
 
-    def run(self, train_dl, test_dl, validation_dl):
+    def run(self, train_dl, test_dl, validation_dl, loss_fn):
         model = self.model()
 
-        loss_function = nn.BCELoss()
-
-        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_function)
+        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_fn)
         Utils.learning_curve_graph(train_history, val_history)
 
-        Iterator.test(model, test_dl, loss_function)
+        Iterator.test(model, test_dl, loss_fn)
 
 ###################################################
 # Intermediate
@@ -92,15 +88,13 @@ class ClassificationCustomModel:
     def model(self):
         return ClassificationCustomNetwork().to(Config.device)
 
-    def run(self, train_dl, test_dl, validation_dl):
+    def run(self, train_dl, test_dl, validation_dl, loss_fn):
         model = self.model()
 
-        loss_function = nn.CrossEntropyLoss()
-
-        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_function)
+        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_fn)
         Utils.learning_curve_graph(train_history, val_history)
 
-        Iterator.test(model, test_dl, loss_function)
+        Iterator.test(model, test_dl, loss_fn)
 
 ###################################################
 # Advanced - adapt the previous models to solve the original problem, i.e. multilabel classification, and compare their performance
@@ -116,12 +110,10 @@ class ClassificationMultilabel:
         elif self.model_name == 'custom': return ClassificationCustomModel().model()
         sys.exit('Invalid model')
 
-    def run(self, train_dl, test_dl, validation_dl): 
+    def run(self, train_dl, test_dl, validation_dl, loss_fn): 
         model = ClassificationCustomNetwork().to(Config.device)
 
-        loss_function = nn.CrossEntropyLoss()
-
-        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_function, multilabel=True)
+        train_history, val_history = Iterator.train(model, train_dl, validation_dl, loss_fn, multilabel=True)
         Utils.learning_curve_graph(train_history, val_history)
 
-        Iterator.test(model, test_dl, loss_function, multilabel=True)
+        Iterator.test(model, test_dl, loss_fn, multilabel=True)

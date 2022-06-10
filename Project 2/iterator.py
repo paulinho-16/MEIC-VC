@@ -46,16 +46,12 @@ class Iterator:
                 final_pred = torch.argmax(probs, dim=1)
 
                 if multilabel:
-                    threshold = 0.5
+                    threshold = 0.3
                     final_pred = np.array([[1 if i > threshold else 0 for i in j] for j in probs])
                     final_pred = torch.from_numpy(final_pred)
                 
                 preds.extend(final_pred.cpu().numpy())
                 labels.extend(y.cpu().numpy())
-
-        # print('----------')
-        # print(len(labels))
-        # print(len(preds))
 
         return total_loss / num_batches, accuracy_score(labels, preds)
 
@@ -64,7 +60,7 @@ class Iterator:
         train_history = {'loss': [], 'accuracy': []}
         val_history = {'loss': [], 'accuracy': []}
 
-        optimizer = torch.optim.Adam(model.parameters(), lr=1e-4) if multilabel else torch.optim.SGD(model.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(model.parameters(), lr=1e-3) if multilabel else torch.optim.SGD(model.parameters(), lr=1e-3)
         
         best_val_loss = np.inf
         print("Start training...")
