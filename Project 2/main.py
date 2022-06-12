@@ -113,9 +113,9 @@ if __name__ == "__main__":
     weights = [1 - len(value)/total_presences for value in labels_quantity.values()]
 
     if version == 'advanced':
-        loss_fn = nn.BCELoss()
+        loss_fn = nn.BCELoss(weight = torch.tensor(weights, dtype=torch.float, device=Config.device))
     else:
-        loss_fn = nn.CrossEntropyLoss(weight = torch.tensor(weights, dtype=torch.float, device='cuda:0'))
+        loss_fn = nn.CrossEntropyLoss(weight = torch.tensor(weights, dtype=torch.float, device=Config.device))
 
     train_data = torch.utils.data.DataLoader(train_data, batch_size=Config.batch_size, shuffle=True, drop_last=True)
     validation_data = torch.utils.data.DataLoader(validation_data, batch_size=Config.batch_size, shuffle=False, drop_last=False)

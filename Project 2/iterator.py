@@ -34,13 +34,7 @@ class Iterator:
                 pred = model(X)
                 m = nn.Sigmoid()
 
-                # print(y)
-                # print('---')
-                # print(m(pred))
-
                 loss = loss_function(m(pred), y)
-
-                # loss = loss_function(final_pred, y)
 
                 # Backpropagation
                 if is_train:
@@ -58,19 +52,9 @@ class Iterator:
                     threshold = 0.25
                     final_pred = np.array([[1.0 if i > threshold else 0.0 for i in j] for j in probs])
                     final_pred = torch.from_numpy(final_pred).to(Config.device)
-
-                # print(y)
-                # print('---')
-                # print(final_pred)
                 
                 preds.extend(final_pred.cpu().numpy())
                 labels.extend(y.cpu().numpy())
-
-        # print(labels)
-        # print('-----')
-        # print(preds)
-        # print('-----')
-        # print(accuracy_score(labels, preds))
 
         return total_loss / num_batches, accuracy_score(labels, preds)
 
