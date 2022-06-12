@@ -2,6 +2,11 @@ import sys
 import torch
 from torch import nn
 from torchvision import transforms
+import gc
+
+gc.collect()
+
+torch.cuda.empty_cache()
 
 ###################################################
 # Global Variables
@@ -108,7 +113,7 @@ if __name__ == "__main__":
     weights = [1 - len(value)/total_presences for value in labels_quantity.values()]
 
     if version == 'advanced':
-        loss_fn = nn.CrossEntropyLoss(weight = torch.tensor(weights, dtype=torch.float, device='cuda:0'))
+        loss_fn = nn.BCELoss()
     else:
         loss_fn = nn.CrossEntropyLoss(weight = torch.tensor(weights, dtype=torch.float, device='cuda:0'))
 

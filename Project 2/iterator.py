@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import accuracy_score
+from torch import nn
 
 # Custom imports
 from utils import Utils
@@ -31,7 +32,15 @@ class Iterator:
 
                 # Compute prediction error
                 pred = model(X)
-                loss = loss_function(pred, y)
+                m = nn.Sigmoid()
+
+                # print(y)
+                # print('---')
+                # print(m(pred))
+
+                loss = loss_function(m(pred), y)
+
+                # loss = loss_function(final_pred, y)
 
                 # Backpropagation
                 if is_train:
@@ -46,12 +55,22 @@ class Iterator:
                 final_pred = torch.argmax(probs, dim=1)
 
                 if multilabel:
-                    threshold = 0.3
-                    final_pred = np.array([[1 if i > threshold else 0 for i in j] for j in probs])
-                    final_pred = torch.from_numpy(final_pred)
+                    threshold = 0.25
+                    final_pred = np.array([[1.0 if i > threshold else 0.0 for i in j] for j in probs])
+                    final_pred = torch.from_numpy(final_pred).to(Config.device)
+
+                # print(y)
+                # print('---')
+                # print(final_pred)
                 
                 preds.extend(final_pred.cpu().numpy())
                 labels.extend(y.cpu().numpy())
+
+        # print(labels)
+        # print('-----')
+        # print(preds)
+        # print('-----')
+        # print(accuracy_score(labels, preds))
 
         return total_loss / num_batches, accuracy_score(labels, preds)
 
@@ -63,7 +82,7 @@ class Iterator:
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-3) if multilabel else torch.optim.SGD(model.parameters(), lr=1e-3)
         
         best_val_loss = np.inf
-        print("Start training...")
+        print("\nStart training...")
 
         for t in range(Config.num_epochs):
             print(f"\nEpoch {t+1}")
