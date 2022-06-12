@@ -7,8 +7,8 @@ class Config:
     annotations_folder = './data/annotations/'
     images_folder = './data/images/'
     images_size = 300
-    num_epochs = 100
-    learning_rate = 0.05
+    num_epochs = 250
+    learning_rate = 1e-3
     batch_size = 16
     num_filters = 32
     kernel_size = 5
