@@ -6,6 +6,17 @@ Exercises/Part2/*.tar.gz
 Exercises/Part2/yolov5
 Exercises/Part2/*best_model.pth
 Exercises/Part2/*latest_model.pth
+*.pth
+
+# Output folder
+Project\ 1/output/
+
+# Models
+Project\ 2/latest-model.pth
+Project\ 2/best-model.pth
+
+# VSCode folder
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
